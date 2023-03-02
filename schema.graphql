@@ -1,0 +1,79 @@
+type Pool @entity {
+  "Address"
+  id: ID!
+  evmEventId: String @index
+  token1: String! @index
+  token2: String! @index
+  poolDecimal: Int!
+  decimal1: Int!
+  decimal2: Int!
+}
+
+type PoolEvent @entity {
+  "<evmEventId>"
+  id: ID!
+  pool: Pool! @index
+  toAddress: String @index
+  senderAddress: String @index
+  type: PoolType! @index
+  amount1: BigInt @index
+  amount2: BigInt @index
+  amountIn1: BigInt @index
+  amountIn2: BigInt @index
+  reserved1: BigInt @index
+  reserved2: BigInt @index
+  supply: BigInt @index
+  totalSupply: BigInt @index
+  timestamp: DateTime! @index
+}
+
+type Candlestick @entity @index(fields: ["blockId", "pool", "token"], unique: true) {
+  "<blockHeight>-<poolId>-<token>"
+  id: ID!
+  blockId: String!
+  pool: Pool!
+  token: String!
+  open: BigDecimal!
+  high: BigDecimal!
+  low: BigDecimal!
+  close: BigDecimal!
+  timestamp: DateTime! @index
+}
+
+type ReservedRaw @entity @index(fields: ["blockId", "pool"], unique: true) {
+  "<blockHeight>-<poolId>"
+  id: ID!
+  blockId: String!
+  eventId: String
+  pool: Pool!
+  reserved1: BigInt!
+  reserved2: BigInt!
+  timestamp: DateTime! @index
+}
+
+type VolumeRaw @entity @index(fields: ["blockId", "pool"], unique: true) {
+  "<blockHeight>-<poolId>"
+  id: ID!
+  blockId: String!
+  pool: Pool!
+  volume1: BigInt!
+  volume2: BigInt!
+  timestamp: DateTime! @index
+}
+
+type TokenPrice @entity @index(fields: ["blockId", "token"], unique: true) {
+  "<blockHeight>-<tokenAddress>"
+  id: ID!
+  blockId: String!
+  token: String!
+  price: BigDecimal!
+  timestamp: DateTime! @index
+}
+
+enum PoolType {
+  Mint, 
+  Burn, 
+  Swap, 
+  Sync, 
+  Transfer
+}

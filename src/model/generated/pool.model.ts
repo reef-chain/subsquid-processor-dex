@@ -1,0 +1,35 @@
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+
+@Entity_()
+export class Pool {
+    constructor(props?: Partial<Pool>) {
+        Object.assign(this, props)
+    }
+
+    /**
+     * Address
+     */
+    @PrimaryColumn_()
+    id!: string
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    evmEventId!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: false})
+    token1!: string
+
+    @Index_()
+    @Column_("text", {nullable: false})
+    token2!: string
+
+    @Column_("int4", {nullable: false})
+    poolDecimal!: number
+
+    @Column_("int4", {nullable: false})
+    decimal1!: number
+
+    @Column_("int4", {nullable: false})
+    decimal2!: number
+}
