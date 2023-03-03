@@ -27,10 +27,10 @@ type PoolEvent @entity {
   timestamp: DateTime! @index
 }
 
-type Candlestick @entity @index(fields: ["blockId", "pool", "token"], unique: true) {
+type Candlestick @entity @index(fields: ["blockHeight", "pool", "token"], unique: true) {
   "<blockHeight>-<poolId>-<token>"
   id: ID!
-  blockId: String!
+  blockHeight: Int!
   pool: Pool!
   token: String!
   open: BigDecimal!
@@ -40,10 +40,10 @@ type Candlestick @entity @index(fields: ["blockId", "pool", "token"], unique: tr
   timestamp: DateTime! @index
 }
 
-type ReservedRaw @entity @index(fields: ["blockId", "pool"], unique: true) {
+type ReservedRaw @entity @index(fields: ["blockHeight", "pool"], unique: true) {
   "<blockHeight>-<poolId>"
   id: ID!
-  blockId: String!
+  blockHeight: Int!
   eventId: String
   pool: Pool!
   reserved1: BigInt!
@@ -51,20 +51,20 @@ type ReservedRaw @entity @index(fields: ["blockId", "pool"], unique: true) {
   timestamp: DateTime! @index
 }
 
-type VolumeRaw @entity @index(fields: ["blockId", "pool"], unique: true) {
+type VolumeRaw @entity @index(fields: ["blockHeight", "pool"], unique: true) {
   "<blockHeight>-<poolId>"
   id: ID!
-  blockId: String!
+  blockHeight: Int!
   pool: Pool!
   volume1: BigInt!
   volume2: BigInt!
   timestamp: DateTime! @index
 }
 
-type TokenPrice @entity @index(fields: ["blockId", "token"], unique: true) {
+type TokenPrice @entity @index(fields: ["blockHeight", "token"], unique: true) {
   "<blockHeight>-<tokenAddress>"
   id: ID!
-  blockId: String!
+  blockHeight: Int!
   token: String!
   price: BigDecimal!
   timestamp: DateTime! @index

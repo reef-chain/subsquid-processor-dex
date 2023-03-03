@@ -23,7 +23,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     await super.process(eventRaw);
 
     const args = factory.events.PairCreated.decode({topics: eventRaw.args.topics, data: eventRaw.args.data} );
-    ctx.log.info(`Reefswap Factory PairCreate event detected on evm even id: ${this.evmEventId}`);
+    ctx.log.info(`Factory PairCreate event detected on evm even id: ${this.evmEventId}`);
 
     const [tokenAddress1, tokenAddress2, poolAddress] = args as any[];
 

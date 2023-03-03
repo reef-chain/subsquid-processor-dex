@@ -11,13 +11,13 @@ class Reserves implements MarketHistoryModule {
 
   private static reserves: Reserve[] = [];
 
-  static async init(blockId: string): Promise<void> {
-    ctx.log.info(`Initializing Reserves holder on block: ${blockId}`);
+  static async init(blockHeight: number): Promise<void> {
+    ctx.log.info(`Initializing Reserves holder on block: ${blockHeight}`);
     this.pools = [];
     this.reserves = [];
 
     const reserves = await ctx.store.find(ReservedRaw, {
-      where: { blockId },
+      where: { blockHeight },
       relations: { pool: true }
     });
 
@@ -49,7 +49,7 @@ class Reserves implements MarketHistoryModule {
         const pool: Pool | undefined = await ctx.store.get(Pool, poolId);
         return new ReservedRaw({
           id: `${block.height}-${poolId}`,
-          blockId: block.id,
+          blockHeight: block.height,
           eventId: this.reserves[index][2],
           pool,
           reserved1: BigInt(this.reserves[index][0].toFixed() || '0'),

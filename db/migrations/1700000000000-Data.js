@@ -1,5 +1,5 @@
-module.exports = class Data1677770000000 {
-    name = 'Data1677770000000'
+module.exports = class Data1700000000000 {
+    name = 'Data1700000000000'
 
     // Additional pool ratio function, which calculates the ratio between buy and sell amount
     // It has an additional field (which_token) to indicate for which token ration was calculated

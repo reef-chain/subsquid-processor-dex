@@ -35,7 +35,7 @@ class TokenPrices implements MarketHistoryModule {
 
   private static reserveMatrix: number[][] = [];
 
-  static async init(blockId: string): Promise<void> {
+  static async init(blockHeight: number): Promise<void> {
     // On init reset all variables
     this.tokens = [];
     this.priceVector = [];
@@ -43,7 +43,7 @@ class TokenPrices implements MarketHistoryModule {
 
     // Retrieve block data from tokenPrice table
     const priceData = await ctx.store.find(TokenPrice, {
-      where: { blockId },
+      where: { blockHeight },
     });
 
     // Add tokens to the list and price vector
@@ -53,7 +53,7 @@ class TokenPrices implements MarketHistoryModule {
 
     // Retrieve reserved data from reservedRaw table
     const reserveData = await ctx.store.find(ReservedRaw, {
-      where: { blockId },
+      where: { blockHeight },
       relations: { pool: true }
     });
 
@@ -135,7 +135,7 @@ class TokenPrices implements MarketHistoryModule {
     this.priceVector[reefIndex] = reefPrice;
 
     if (!this.skip || currentReefPrice !== reefPrice) {
-      // ctx.log.info('Estimating token prices');
+      ctx.log.info('Estimating token prices');
       // Solve the system of equations to estimate the prices
       // Update the price vector
       this.priceVector = estimateTokenPriceBasedOnReefPrice(
@@ -155,7 +155,7 @@ class TokenPrices implements MarketHistoryModule {
         const token = this.tokens[index];
         return new TokenPrice({
           id: `${String(block.height).padStart(9, '0')}-${token}`,
-          blockId: block.id,
+          blockHeight: block.height,
           token,
           price: bigdecimalTransformer.from(price),
           timestamp: new Date(block.timestamp),

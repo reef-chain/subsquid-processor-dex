@@ -26,7 +26,7 @@ const NETWORK = process.env.NETWORK || 'mainnet';
 const RPC_URL = process.env.NODE_RPC_WS;
 const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
-console.log('NETWORK=',NETWORK, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
+console.log('NETWORK=', NETWORK, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
 const START_BLOCK = parseInt(process.env.START_BLOCK || '1');
 
@@ -36,12 +36,7 @@ const processor = new SubstrateBatchProcessor()
   .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
   .addEvmLog(FACTORY_ADDRESS, {
     filter: [ReefswapV2Factory.events.PairCreated.topic],
-    data: {
-      event: {
-        args: true,
-        call: true,
-      },
-    },
+    data: { event: { args: true } }
   })
   .addEvmLog("*", {
     filter: [[
@@ -51,12 +46,7 @@ const processor = new SubstrateBatchProcessor()
       ReefswapV2Pair.events.Sync.topic, 
       ReefswapV2Pair.events.Transfer.topic
     ]],
-    data: {
-      event: {
-        args: true,
-        call: true,
-      },
-    },
+    data: { event: { args: true } }
   })
   .includeAllBlocks(); ;
 
@@ -67,21 +57,19 @@ export let ctx: Context;
 // Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
-let firstBatch = true;
+let isFirstBatch = true;
 
 processor.run(database, async (ctx_) => {
   ctx = ctx_;
 
-  if (firstBatch) {
+  if (isFirstBatch) {
     // Remove all pool rows that are greater then current pool pointer
     const currentBlock = ctx.blocks[0].header.height;
-    // await removeAllPoolEventsAboveBlock(currentBlock); // TODO - required?
 
     // Initialize token prices on previous block
-    const previousBlock = (currentBlock - 1).toString();
-    await MarketHistory.init(previousBlock);
+    await MarketHistory.init(currentBlock - 1);
 
-    firstBatch = false;
+    isFirstBatch = false;
   }
   
   for (const block of ctx.blocks) {
@@ -101,7 +89,7 @@ processor.run(database, async (ctx_) => {
               poolId: pool.id,
               eventId: eventRaw.id,
               rawData: eventRaw.args,
-              blockId: block.header.id,
+              blockHeight: block.header.height,
               timestamp: new Date(block.header.timestamp).toDateString(),
               topic0: eventRaw.args.topics[0] || "",
             };
@@ -135,7 +123,7 @@ const selectPoolEvent = (pairEvent: PairEvent): PoolEventBase<utils.LogDescripti
 
 const processPairEvent = async (pairEvent: PairEvent): Promise<void> => {
   const data = ReefswapV2Pair.abi.parseLog(pairEvent.rawData);
-  ctx.log.info(`Reefswap Pair: ${data.name} event detected!`);
+  ctx.log.info(`Pair: ${data.name} event detected!`);
 
   const event = selectPoolEvent(pairEvent);
   await event.combine(data);

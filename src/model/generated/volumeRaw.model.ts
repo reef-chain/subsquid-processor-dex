@@ -2,7 +2,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Pool} from "./pool.model"
 
-@Index_(["blockId", "pool"], {unique: true})
+@Index_(["blockHeight", "pool"], {unique: true})
 @Entity_()
 export class VolumeRaw {
     constructor(props?: Partial<VolumeRaw>) {
@@ -15,8 +15,8 @@ export class VolumeRaw {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("text", {nullable: false})
-    blockId!: string
+    @Column_("int4", {nullable: false})
+    blockHeight!: number
 
     @Index_()
     @ManyToOne_(() => Pool, {nullable: true})

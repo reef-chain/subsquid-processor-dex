@@ -14,8 +14,8 @@ class Volume implements MarketHistoryModule {
 
   private static blockVolume: BlockVolume = {};
 
-  static async init(blockId: string): Promise<void> {
-    ctx.log.info(`Initializing Volume holder on block: ${blockId}`);
+  static async init(blockHeight: number): Promise<void> {
+    ctx.log.info(`Initializing Volume holder on block: ${blockHeight}`);
     this.pools = await ctx.store.find(Pool);
     ctx.log.info(`Volume for pools: [${this.pools.map(p => p.id).join(', ')}] initialized`);
   }
@@ -44,7 +44,7 @@ class Volume implements MarketHistoryModule {
       this.pools.map(async (pool) => {
         return new VolumeRaw({
           id: `${block.height}-${pool.id}`,
-          blockId: block.id,
+          blockHeight: block.height,
           pool,
           volume1: this.blockVolume[pool.id] ? BigInt(this.blockVolume[pool.id][0].toFixed()) : BigInt('0'),
           volume2: this.blockVolume[pool.id] ? BigInt(this.blockVolume[pool.id][1].toFixed()) : BigInt('0'),

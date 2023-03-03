@@ -7,7 +7,7 @@ import { RawEventData } from '../../interfaces/interfaces';
 
 export interface PoolEventData {
   poolId: string;
-  blockId: string;
+  blockHeight: number;
   eventId: string;
   timestamp: string;
 }
@@ -21,7 +21,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
   // Needed
   poolId: string;
 
-  blockId: string;
+  blockHeight: number;
 
   timestamp: string;
 
@@ -52,7 +52,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     super(pairData.eventId);
     this.type = type;
     this.poolId = pairData.poolId;
-    this.blockId = pairData.blockId;
+    this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
   }
 

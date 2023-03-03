@@ -2,7 +2,7 @@ import {BigDecimal} from "@subsquid/big-decimal"
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
 
-@Index_(["blockId", "token"], {unique: true})
+@Index_(["blockHeight", "token"], {unique: true})
 @Entity_()
 export class TokenPrice {
     constructor(props?: Partial<TokenPrice>) {
@@ -15,8 +15,8 @@ export class TokenPrice {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("text", {nullable: false})
-    blockId!: string
+    @Column_("int4", {nullable: false})
+    blockHeight!: number
 
     @Column_("text", {nullable: false})
     token!: string

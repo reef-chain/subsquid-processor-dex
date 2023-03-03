@@ -21,9 +21,10 @@ type CandlestickBlock = {
 class Candlestick implements MarketHistoryModule {
   private static candlesticks: CandlestickBlock = {};
 
-  static async init(blockId: string): Promise<void> {
+  static async init(blockHeight: number): Promise<void> {
     const initialData: CandlestickModel[] = await ctx.store.find(CandlestickModel, {
-      where: { blockId }
+      where: { blockHeight },
+      relations: { pool: true }
     });
 
     this.candlesticks = initialData.reduce(
@@ -93,7 +94,7 @@ class Candlestick implements MarketHistoryModule {
       const pool = await ctx.store.get(Pool, poolId);
       return new CandlestickModel({
         id: `${block.height}-${poolId}-${token}`,
-        blockId: block.id,
+        blockHeight: block.height,
         pool,
         token,
         open: bigdecimalTransformer.from(open),

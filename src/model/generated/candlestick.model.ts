@@ -3,7 +3,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Pool} from "./pool.model"
 
-@Index_(["blockId", "pool", "token"], {unique: true})
+@Index_(["blockHeight", "pool", "token"], {unique: true})
 @Entity_()
 export class Candlestick {
     constructor(props?: Partial<Candlestick>) {
@@ -16,8 +16,8 @@ export class Candlestick {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("text", {nullable: false})
-    blockId!: string
+    @Column_("int4", {nullable: false})
+    blockHeight!: number
 
     @Index_()
     @ManyToOne_(() => Pool, {nullable: true})

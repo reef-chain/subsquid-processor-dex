@@ -14,11 +14,11 @@ const modules = [
 ];
 
 class MarketHistory extends MarketHistoryModule {
-  static async init(blockId: string): Promise<void> {
-    ctx.log.info(`Initializing market history for block ${blockId}`);
+  static async init(blockHeight: number): Promise<void> {
+    ctx.log.info(`Initializing market history for block ${blockHeight}`);
 
     for (const module of modules) {
-      await module.init(blockId);
+      await module.init(blockHeight);
     }
   }
 
