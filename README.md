@@ -1,6 +1,7 @@
 # Reef DEX indexer Squid
 
-[Substrate processor](https://docs.subsquid.io/develop-a-squid/substrate-processor/) for Reef DEX. Built upon [squid Frontier EVM template](https://github.com/subsquid/squid-frontier-evm-template) and adapted to be used with Reef network.
+[Substrate processor](https://docs.subsquid.io/develop-a-squid/substrate-processor/) for Reef DEXes based on Uniswap V2 contracts.
+Built upon [squid Frontier EVM template](https://github.com/subsquid/squid-frontier-evm-template) and adapted to be used with Reef network.
 
 ## Quickstart
 

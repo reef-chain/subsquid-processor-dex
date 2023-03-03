@@ -5,6 +5,7 @@ import PoolEventBase from './PoolEventBase';
 import * as erc20 from "../../abi/ERC20";
 import * as factory from "../../abi/ReefswapV2Factory";
 import { Pool } from '../../model';
+import { verifyPool } from './poolVerification';
 
 class FactoryEvent extends PoolEventBase<EventRaw> {
   static verify = false;
@@ -56,6 +57,10 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     });
     await ctx.store.save(pool);
 
+    // TODO: Contract may not be present in DB. wait some time?, add contract from verification api?
+    if (FactoryEvent.verify) {
+      verifyPool(this.poolAddress);
+    }
   }
 
 }

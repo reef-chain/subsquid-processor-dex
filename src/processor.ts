@@ -68,6 +68,7 @@ processor.run(database, async (ctx_) => {
 
     // Initialize token prices on previous block
     await MarketHistory.init(currentBlock - 1);
+    FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
 
     isFirstBatch = false;
   }

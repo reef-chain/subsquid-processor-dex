@@ -12,10 +12,3 @@ export interface RawEventData {
     topics:string[],
     data: string,
 }
-
-// TODO required?
-export interface ERC20Data {
-    name: string;
-    symbol: string;
-    decimals: number;
-}
