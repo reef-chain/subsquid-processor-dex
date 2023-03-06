@@ -70,6 +70,139 @@ type TokenPrice @entity @index(fields: ["blockHeight", "token"], unique: true) {
   timestamp: DateTime! @index
 }
 
+# ------------------ Views ---------------------------
+
+type PoolMinuteCandlestick @entity {
+  timeframe: DateTime
+  poolId: String
+  whichToken: Int
+  low1: BigDecimal
+  high1: BigDecimal
+  open1: BigDecimal
+  close1: BigDecimal
+  low2: BigDecimal
+  high2: BigDecimal
+  open2: BigDecimal
+  close2: BigDecimal
+}
+
+type PoolHourCandlestick @entity {
+  timeframe: DateTime
+  poolId: String
+  whichToken: Int
+  low1: BigDecimal
+  high1: BigDecimal
+  open1: BigDecimal
+  close1: BigDecimal
+  low2: BigDecimal
+  high2: BigDecimal
+  open2: BigDecimal
+  close2: BigDecimal
+}
+
+type PoolDayCandlestick @entity {
+  timeframe: DateTime
+  poolId: String
+  whichToken: Int
+  low1: BigDecimal
+  high1: BigDecimal
+  open1: BigDecimal
+  close1: BigDecimal
+  low2: BigDecimal
+  high2: BigDecimal
+  open2: BigDecimal
+  close2: BigDecimal
+}
+
+type PoolMinuteSupply @entity {
+  poolId: String
+  timeframe: DateTime
+  totalSupply: BigInt
+  supply: BigInt
+}
+
+type PoolHourSupply @entity {
+  poolId: String
+  timeframe: DateTime
+  totalSupply: BigInt
+  supply: BigInt
+}
+
+type PoolDaySupply @entity {
+  poolId: String
+  timeframe: DateTime
+  totalSupply: BigInt
+  supply: BigInt
+}
+
+type PoolMinuteVolume @entity {
+  poolId: String
+  timeframe: DateTime
+  amount1: BigInt
+  amount2: BigInt
+}
+
+type PoolHourVolume @entity {
+  poolId: String
+  timeframe: DateTime
+  amount1: BigInt
+  amount2: BigInt
+}
+
+type PoolDayVolume @entity {
+  poolId: String
+  timeframe: DateTime
+  amount1: BigInt
+  amount2: BigInt
+}
+
+type PoolMinuteFee @entity {
+  poolId: String
+  whichToken: Int
+  timeframe: DateTime
+  fee1: BigInt
+  fee2: BigInt
+}
+
+type PoolHourFee @entity {
+  poolId: String
+  whichToken: Int
+  timeframe: DateTime
+  fee1: BigInt
+  fee2: BigInt
+}
+
+type PoolDayFee @entity {
+  poolId: String
+  whichToken: Int
+  timeframe: DateTime
+  fee1: BigInt
+  fee2: BigInt
+}
+
+type PoolMinuteLocked @entity {
+  poolId: String
+  timeframe: DateTime
+  reserved1: BigInt
+  reserved2: BigInt
+}
+
+type PoolHourLocked @entity {
+  poolId: String
+  timeframe: DateTime
+  reserved1: BigInt
+  reserved2: BigInt
+}
+
+type PoolDayLocked @entity {
+  poolId: String
+  timeframe: DateTime
+  reserved1: BigInt
+  reserved2: BigInt
+}
+
+# ------------------ Enums ---------------------------
+
 enum PoolType {
   Mint, 
   Burn, 
