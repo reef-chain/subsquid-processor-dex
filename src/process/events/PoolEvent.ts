@@ -9,7 +9,7 @@ export interface PoolEventData {
   poolId: string;
   blockHeight: number;
   eventId: string;
-  timestamp: string;
+  timestamp: Date;
 }
 
 export interface PairEvent extends PoolEventData {
@@ -23,7 +23,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
 
   blockHeight: number;
 
-  timestamp: string;
+  timestamp: Date;
 
   type: PoolType;
 
@@ -79,7 +79,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
       reserved2: BigInt(this.reserved2 || '0'),
       supply: BigInt(this.supply || '0'),
       totalSupply: BigInt(this.totalSupply || '0'),
-      timestamp: new Date(this.timestamp),
+      timestamp: this.timestamp,
     });
 
     await ctx.store.save(poolEvent);

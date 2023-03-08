@@ -132,30 +132,19 @@ module.exports = class Data1700000000000 {
             RETURNS TABLE (
                 pool_id VARCHAR,
                 timeframe timestamptz,
-                total_supply numeric,
-                supply numeric
+                supply numeric,
+                total_supply numeric
             )
             AS $$
             BEGIN
                 RETURN QUERY
                 SELECT
-                p.pool_id,
-                p.timeframe,
-                (
-                    SELECT DISTINCT ON (sub.timeframe)
-                    sub.total_supply
-                    FROM pool_prepare_supply_data(duration) as sub
-                    WHERE MAX(p.exact_time) = sub.exact_time
-                ),
-                (
-                    SELECT DISTINCT ON (sub.timeframe)
-                    sub.supply
-                    FROM pool_prepare_supply_data(duration) as sub
-                    WHERE MAX(p.exact_time) = sub.exact_time
-                )
+                    p.pool_id,
+                    p.timeframe,
+                    p.supply,
+        	        LAST_VALUE(p.total_supply) OVER w
                 FROM pool_prepare_supply_data(duration) as p
-                GROUP BY p.timeframe, p.pool_id
-                ORDER BY p.timeframe;
+                WINDOW w AS (PARTITION BY p.pool_id, p.timeframe ORDER BY p.timeframe, p.pool_id);
             end; $$
             LANGUAGE plpgsql;
         `)

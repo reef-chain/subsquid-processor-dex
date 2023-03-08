@@ -91,7 +91,7 @@ processor.run(database, async (ctx_) => {
               eventId: eventRaw.id,
               rawData: eventRaw.args,
               blockHeight: block.header.height,
-              timestamp: new Date(block.header.timestamp).toDateString(),
+              timestamp: new Date(block.header.timestamp),
               topic0: eventRaw.args.topics[0] || "",
             };
             await processPairEvent(pairEvent);
