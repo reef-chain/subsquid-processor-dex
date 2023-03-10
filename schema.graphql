@@ -176,7 +176,6 @@ type PoolDayVolume @entity {
 
 type PoolMinuteFee @entity {
   poolId: String
-  whichToken: Int
   timeframe: DateTime
   fee1: BigInt
   fee2: BigInt
@@ -184,7 +183,6 @@ type PoolMinuteFee @entity {
 
 type PoolHourFee @entity {
   poolId: String
-  whichToken: Int
   timeframe: DateTime
   fee1: BigInt
   fee2: BigInt
@@ -192,7 +190,6 @@ type PoolHourFee @entity {
 
 type PoolDayFee @entity {
   poolId: String
-  whichToken: Int
   timeframe: DateTime
   fee1: BigInt
   fee2: BigInt
@@ -517,16 +514,4 @@ type PoolDayLocked @entity {
 #   poolId: String
 #   timeframe: DateTime
 #   change: BigDecimal
-# }
-
-# # Pool info
-
-# type PoolInfo @entity {
-#   id: ID!
-#   evmEventId: String
-#   address: String
-#   token1: String
-#   token2: String
-#   decimal1: Int
-#   decimal2: Int
 # }

@@ -192,11 +192,10 @@ module.exports = class Data1700000000000 {
             SELECT
                 p.pool_id,
                 p.timeframe,
-                SUM(p.amount1),
-                SUM(p.amount2)
-            FROM pool_prepare_volume_data(duration) as p
-            GROUP BY p.pool_id, p.timeframe
-            ORDER BY p.timeframe;
+                SUM(p.amount1) OVER w,
+                SUM(p.amount2) OVER w
+            FROM pool_prepare_volume_data(duration) AS p
+            WINDOW w AS (PARTITION BY p.timeframe, p.pool_id ORDER BY p.timeframe);
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -213,8 +212,7 @@ module.exports = class Data1700000000000 {
                 pool_id VARCHAR,
                 timeframe timestamptz,
                 fee1 numeric,
-                fee2 numeric,
-                which_token int
+                fee2 numeric
             )
             AS $$
             BEGIN
@@ -223,25 +221,18 @@ module.exports = class Data1700000000000 {
                 pe.pool_id,
                 date_trunc(duration, pe.timestamp),
                 (
-                CASE
-                    WHEN pe.amount_in1 > 0
-                    THEN pe.amount_in1 * 0.003
-                    ELSE 0
-                END
+                    CASE
+                        WHEN pe.amount_in1 > 0
+                        THEN pe.amount_in1 * 0.003
+                        ELSE 0
+                    END
                 ),
                 (
-                CASE
-                    WHEN pe.amount_in2 > 0
-                    THEN pe.amount_in2 * 0.003
-                    ELSE 0
-                END
-                ),
-                (
-                CASE
-                    WHEN pe.amount_in1 > 0
-                    THEN 1 -- Token 2 was bought 
-                    ELSE 2 -- Token 1 was bought 
-                END
+                    CASE
+                        WHEN pe.amount_in2 > 0
+                        THEN pe.amount_in2 * 0.003
+                        ELSE 0
+                    END
                 )
             FROM pool_event as pe
             WHERE pe.type = 'Swap';
@@ -252,23 +243,20 @@ module.exports = class Data1700000000000 {
             CREATE FUNCTION pool_fee (duration text)
             RETURNS TABLE (
                 pool_id VARCHAR,
-                which_token int,
                 timeframe timestamptz,
                 fee1 numeric,
                 fee2 numeric
             )
             AS $$
             BEGIN
-            RETURN QUERY
-            SELECT
-                org.pool_id,
-                org.which_token,
-                org.timeframe,
-                SUM(org.fee1),
-                SUM(org.fee2)
-            FROM pool_prepare_fee_data(duration) as org
-            GROUP BY org.pool_id, org.which_token, org.timeframe
-            ORDER BY org.timeframe;
+                RETURN QUERY
+                SELECT
+                    p.pool_id,
+                    p.timeframe,
+                    SUM(p.fee1) OVER w,
+                    SUM(p.fee2) OVER w
+                FROM pool_prepare_fee_data(duration) AS p
+                WINDOW w AS (PARTITION BY p.pool_id, p.timeframe ORDER BY p.timeframe);
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -858,23 +846,6 @@ module.exports = class Data1700000000000 {
                 change(volume, LAG(volume) OVER (PARTITION BY pool_id ORDER BY timeframe)) AS change
             FROM volume_week;
         `)
-
-        // Pool info view
-        await db.query(`
-            CREATE VIEW pool_info AS 
-            SELECT
-                p.id,
-                p.evm_event_id,
-                p.token1,
-                p.token2,
-                p.decimal1,
-                p.decimal2,
-            (SELECT fd.fee FROM fee_day AS fd WHERE p.id = fd.pool_id ORDER BY timeframe DESC LIMIT 1) AS fee,
-            (SELECT vd.volume FROM volume_day AS vd WHERE p.id = vd.pool_id ORDER BY timeframe DESC LIMIT 1) AS volume,
-            (SELECT vd.reserved FROM reserved_day AS vd WHERE p.id = vd.pool_id ORDER BY timeframe DESC LIMIT 1) AS reserved,
-            (SELECT rd.change FROM volume_change_day AS rd WHERE p.id = rd.pool_id ORDER BY timeframe DESC LIMIT 1) as volume_change
-            FROM pool AS p;
-        `)
     }
 
     async down(db) {
@@ -961,6 +932,5 @@ module.exports = class Data1700000000000 {
         await db.query(`DROP VIEW volume_change_hour`)
         await db.query(`DROP VIEW volume_change_day`)
         await db.query(`DROP VIEW volume_change_week`)
-        await db.query(`DROP VIEW pool_info`)
     }
 }

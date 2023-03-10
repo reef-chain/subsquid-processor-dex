@@ -20,13 +20,14 @@ class TransferEvent extends PoolEvent {
 
     const prevSupply = await ctx.store.findOne(PoolEventModel, {
       where: { pool: { id: this.poolId }, type: PoolType.Transfer },
+      order: { timestamp: 'DESC' },
     });
 
-    this.supply = (prevSupply?.totalSupply || 0).toString();
     const isMint = addr1 === constants.AddressZero;
-    const prev = BigNumber.from(this.supply);
+    const prev = BigNumber.from((prevSupply?.totalSupply || 0).toString());
 
     this.totalSupply = (isMint ? prev.add(amount) : prev.sub(amount)).toString();
+    this.supply = `${!isMint ? '-' : ''}${amount.toString()}`,
 
     ctx.log.info(`Transfer event processed! \n\tPool id:${this.poolId}\n\tSupply: ${this.supply}\n\tTotal supply: ${this.totalSupply}`);
   }
