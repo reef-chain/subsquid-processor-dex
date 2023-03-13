@@ -62,6 +62,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
 
   // Saving pool event to database
   async save(): Promise<void> {
+    if (this.type === PoolType.Transfer && !this.supply) return;
     const pool = await ctx.store.get(Pool, this.poolId);
     if (!pool) throw new Error(`Pool with id ${this.poolId} not found`);
 

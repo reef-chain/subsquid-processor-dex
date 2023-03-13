@@ -12,9 +12,7 @@ class TransferEvent extends PoolEvent {
     await super.process(event);
     const [addr1, addr2, amount] = event.args;
 
-    // TODO check why are this conditions needed and explain it
-    // Probably because when mint is called first address is zero and
-    //  when burn is called second address is zero.
+    // When mint is called first address is zero and when burn is called second address is zero.
     if (addr1 !== constants.AddressZero && addr2 !== constants.AddressZero) { return; }
     if (addr1 === constants.AddressZero && addr2 === constants.AddressZero) { return; }
 
