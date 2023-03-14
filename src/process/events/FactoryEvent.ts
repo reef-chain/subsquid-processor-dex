@@ -20,6 +20,8 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
 
   decimal2?: number;
 
+  blockHeight?: number;
+
   async process(eventRaw: EventRaw, blockHeight: number): Promise<void> {
     await super.process(eventRaw);
 
@@ -34,6 +36,8 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
 
     this.decimal1 = await new erc20.Contract(ctx, { height: blockHeight }, tokenAddress1).decimals();
     this.decimal2 = await new erc20.Contract(ctx, { height: blockHeight }, tokenAddress2).decimals();
+
+    this.blockHeight = blockHeight;
 
     // Add new pool in TokenPrices
     TokenPrices.addPool(tokenAddress1, tokenAddress2);
@@ -57,9 +61,8 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     });
     await ctx.store.save(pool);
 
-    // TODO: Contract may not be present in DB. wait some time?, add contract from verification api?
     if (FactoryEvent.verify) {
-      verifyPool(this.poolAddress);
+      verifyPool(this.poolAddress, this.blockHeight!);
     }
   }
 

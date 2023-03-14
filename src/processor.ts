@@ -63,10 +63,8 @@ processor.run(database, async (ctx_) => {
   ctx = ctx_;
 
   if (isFirstBatch) {
-    // Remove all pool rows that are greater then current pool pointer
-    const currentBlock = ctx.blocks[0].header.height;
-
     // Initialize token prices on previous block
+    const currentBlock = ctx.blocks[0].header.height;
     await MarketHistory.init(currentBlock - 1);
     FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
 
