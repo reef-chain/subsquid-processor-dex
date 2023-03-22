@@ -15,6 +15,7 @@ type PoolEvent @entity {
   pool: Pool! @index
   toAddress: String @index
   senderAddress: String @index
+  sigerAddress: String @index
   type: PoolType! @index
   amount1: BigInt @index
   amount2: BigInt @index

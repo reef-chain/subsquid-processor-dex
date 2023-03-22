@@ -3,13 +3,15 @@ import { ctx } from '../../processor';
 import PoolEventBase from './PoolEventBase';
 import { PoolEvent as PoolEventModel } from '../../model';
 import { Pool, PoolType } from '../../model';
-import { RawEventData } from '../../interfaces/interfaces';
+import { RawEventData, ExtrinsicRaw } from '../../interfaces/interfaces';
+import { hexToNativeAddress } from '../../util/util';
 
 export interface PoolEventData {
   poolId: string;
   blockHeight: number;
   eventId: string;
   timestamp: Date;
+  extrinsic?: ExtrinsicRaw;
 }
 
 export interface PairEvent extends PoolEventData {
@@ -31,6 +33,8 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
   toAddress?: string;
 
   senderAddress?: string;
+
+  signerAddress?: string;
 
   amount1?: string;
 
@@ -54,6 +58,9 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     this.poolId = pairData.poolId;
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
+    if (type === PoolType.Transfer && pairData.extrinsic?.signature?.address?.value) {
+      this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address.value);
+    }
   }
 
   // Available for child classes before saving
@@ -71,6 +78,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
       pool,
       toAddress: this.toAddress,
       senderAddress: this.senderAddress,
+      signerAddress: this.signerAddress,
       type: this.type,
       amount1: BigInt(this.amount1 || '0'),
       amount2: BigInt(this.amount2 || '0'),

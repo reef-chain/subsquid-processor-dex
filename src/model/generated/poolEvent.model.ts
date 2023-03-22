@@ -28,6 +28,10 @@ export class PoolEvent {
     senderAddress!: string | undefined | null
 
     @Index_()
+    @Column_("text", {nullable: true})
+    signerAddress!: string | undefined | null
+
+    @Index_()
     @Column_("varchar", {length: 8, nullable: false})
     type!: PoolType
 

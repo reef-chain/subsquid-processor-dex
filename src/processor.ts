@@ -46,7 +46,7 @@ const processor = new SubstrateBatchProcessor()
       ReefswapV2Pair.events.Sync.topic, 
       ReefswapV2Pair.events.Transfer.topic
     ]],
-    data: { event: { args: true } }
+    data: { event: { args: true, extrinsic: true } }
   })
   .includeAllBlocks(); ;
 
@@ -91,6 +91,7 @@ processor.run(database, async (ctx_) => {
               blockHeight: block.header.height,
               timestamp: new Date(block.header.timestamp),
               topic0: eventRaw.args.topics[0] || "",
+              extrinsic: eventRaw.extrinsic
             };
             await processPairEvent(pairEvent);
           }

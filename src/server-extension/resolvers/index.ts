@@ -145,6 +145,31 @@ export class FeeObject {
   }
 }
 
+@ObjectType()
+export class PoolInfo {
+  @Field(() => [FeeObject], { nullable: false })
+  fee!: FeeObject[];
+
+  @Field(() => [VolumeObject], { nullable: false })
+  currentDayVolume!: VolumeObject[];
+
+  @Field(() => [VolumeObject], { nullable: false })
+  previousDayVolume!: VolumeObject[];
+
+  @Field(() => ReservesObject, { nullable: false })
+  reserves!: ReservesObject;
+
+  @Field(() => BigInteger, { nullable: false })
+  totalSupply!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  userSupply!: bigint;
+
+  constructor(props: Partial<PoolInfo>) {
+    Object.assign(this, props);
+  }
+}
+
 
 @Resolver()
 export class PoolResolver {
@@ -329,7 +354,7 @@ export class PoolResolver {
       });
     });
 
-    const result = {
+    const result = new PoolData({
       candlestick1: resultCandlestick1,
       candlestick2: resultCandlestick2,
       fee: resultFee,
@@ -338,7 +363,101 @@ export class PoolResolver {
       previousReserves: resultPreviousReserves,
       previousCandlestick1: resultPreviousCandlestick1,
       previousCandlestick2: resultPreviousCandlestick2,
-    }
+    });
+
+    return result;
+  }
+
+  @Query(() => PoolInfo)
+  async poolInfo(
+    @Arg('address') address: string,
+    @Arg('signerAddress') signerAddress: string,
+    @Arg('fromTime') fromTime: string,
+    @Arg('toTime') toTime: string,
+  ): Promise<PoolInfo> {
+    const manager = await this.tx();
+
+    const queryFee = `
+      SELECT SUM(fee1) AS fee1, SUM(fee2) AS fee2
+      FROM pool_day_fee
+      WHERE pool_id = $1 AND timeframe >= $2
+      GROUP BY timeframe
+    `;
+    let resultFee = await manager.query(queryFee, [address, toTime]);
+    resultFee = resultFee.map((row: any) => {
+      return new FeeObject({
+        fee1: row.fee1,
+        fee2: row.fee2
+      });
+    });
+
+    const queryCurrentDayVolume = `
+      SELECT SUM(amount1) AS amount1, SUM(amount2) AS amount2
+      FROM pool_day_volume
+      WHERE pool_id = $1 AND timeframe >= $2
+      GROUP BY timeframe
+    `;
+    let resultCurrentDayVolume = await manager.query(queryCurrentDayVolume, [address, toTime]);
+    resultCurrentDayVolume = resultCurrentDayVolume.map((row: any) => {
+      return new VolumeObject({
+        amount1: row.amount1,
+        amount2: row.amount2
+      });
+    });
+
+    const queryPreviousDayVolume = `
+      SELECT SUM(amount1) AS amount1, SUM(amount2) AS amount2
+      FROM pool_day_volume
+      WHERE pool_id = $1 AND timeframe >= $2 AND timeframe < $3
+      GROUP BY timeframe
+    `;
+    let resultPreviousDayVolume = await manager.query(queryPreviousDayVolume, [address, fromTime, toTime]);
+    resultPreviousDayVolume = resultPreviousDayVolume.map((row: any) => {
+      return new VolumeObject({
+        amount1: row.amount1,
+        amount2: row.amount2
+      });
+    });
+
+    const queryReserves = `
+      SELECT reserved1, reserved2
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Sync'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `;
+    let resultReserves = await manager.query(queryReserves, [address]);
+    resultReserves = resultReserves.map((row: any) => {
+      return new ReservesObject({
+        reserved1: row.reserved1,
+        reserved2: row.reserved2
+      });
+    });
+
+    const queryTotalSupply = `
+      SELECT total_supply
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Transfer'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `;
+    let resultTotalSupply = await manager.query(queryTotalSupply, [address]);
+
+    const queryUserSupply = `
+      SELECT SUM(supply) AS supply
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Transfer' AND signer_address = $2
+    `;
+    let resultUserSupply = await manager.query(queryUserSupply, [address, signerAddress]);
+
+    const result = new PoolInfo({
+      fee: resultFee,
+      currentDayVolume: resultCurrentDayVolume,
+      previousDayVolume: resultPreviousDayVolume,
+      reserves: resultReserves[0],
+      totalSupply: resultTotalSupply[0].total_supply || 0n,
+      userSupply: resultUserSupply[0].supply || 0n,
+    });
 
     return result;
   }

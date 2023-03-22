@@ -25,7 +25,7 @@ class TransferEvent extends PoolEvent {
     const prev = BigNumber.from((prevSupply?.totalSupply || 0).toString());
 
     this.totalSupply = (isMint ? prev.add(amount) : prev.sub(amount)).toString();
-    this.supply = `${!isMint ? '-' : ''}${amount.toString()}`,
+    this.supply = `${!isMint ? '-' : ''}${amount.toString()}`;    
 
     ctx.log.info(`Transfer event processed! \n\tPool id:${this.poolId}\n\tSupply: ${this.supply}\n\tTotal supply: ${this.totalSupply}`);
   }
