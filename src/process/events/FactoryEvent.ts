@@ -9,17 +9,15 @@ import { verifyPool } from './poolVerification';
 
 class FactoryEvent extends PoolEventBase<EventRaw> {
   static verify = false;
-
   poolAddress?: string;
-
   tokenAddress1?: string;
-
   tokenAddress2?: string;
-
   decimal1?: number;
-
   decimal2?: number;
-
+  name1?: string;
+  name2?: string;
+  symbol1?: string;
+  symbol2?: string;
   blockHeight?: number;
 
   async process(eventRaw: EventRaw, blockHeight: number): Promise<void> {
@@ -34,8 +32,35 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     this.tokenAddress1 = tokenAddress1;
     this.tokenAddress2 = tokenAddress2;
 
-    this.decimal1 = await new erc20.Contract(ctx, { height: blockHeight }, tokenAddress1).decimals();
-    this.decimal2 = await new erc20.Contract(ctx, { height: blockHeight }, tokenAddress2).decimals();
+    const contract1 = new erc20.Contract(ctx, { height: blockHeight }, tokenAddress1);
+    const contract2 = new erc20.Contract(ctx, { height: blockHeight }, tokenAddress2);
+
+    this.decimal1 = await contract1.decimals();
+    this.decimal2 = await contract2.decimals();
+
+    try { 
+      this.name1 = await contract1.name(); 
+    } catch (e) { 
+      this.name1 = '';
+    }
+
+    try { 
+      this.name2 = await contract2.name(); 
+    } catch (e) { 
+      this.name2 = '';
+    }
+
+    try {
+      this.symbol1 = await contract1.symbol();
+    } catch (e) {
+      this.symbol1 = '';
+    }
+
+    try {
+      this.symbol2 = await contract2.symbol();
+    } catch (e) {
+      this.symbol2 = '';
+    }
 
     this.blockHeight = blockHeight;
 
@@ -58,11 +83,21 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
       poolDecimal: 18,
       decimal1: this.decimal1,
       decimal2: this.decimal2,
+      name1: this.name1,
+      name2: this.name2,
+      symbol1: this.symbol1,
+      symbol2: this.symbol2,
+      verified: false,
     });
     await ctx.store.save(pool);
 
     if (FactoryEvent.verify) {
-      verifyPool(this.poolAddress, this.blockHeight!);
+      verifyPool(this.poolAddress, this.blockHeight!).then((res) => {
+        if (res?.data === 'Verified') {
+          pool.verified = true;
+          ctx.store.save(pool);
+        }
+      });
     }
   }
 

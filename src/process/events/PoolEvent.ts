@@ -22,34 +22,21 @@ export interface PairEvent extends PoolEventData {
 class PoolEvent extends PoolEventBase<utils.LogDescription> {
   // Needed
   poolId: string;
-
   blockHeight: number;
-
   timestamp: Date;
-
   type: PoolType;
 
   // Optional attributes for childe classes
   toAddress?: string;
-
   senderAddress?: string;
-
   signerAddress?: string;
-
   amount1?: string;
-
   amount2?: string;
-
   amountIn1?: string;
-
   amountIn2?: string;
-
   reserved1?: string;
-
   reserved2?: string;
-
   supply?: string;
-
   totalSupply?: string;
 
   constructor(pairData: PoolEventData, type: PoolType) {

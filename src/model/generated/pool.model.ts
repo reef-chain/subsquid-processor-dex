@@ -32,4 +32,20 @@ export class Pool {
 
     @Column_("int4", {nullable: false})
     decimal2!: number
+
+    @Column_("text", {nullable: false})
+    name1!: string
+
+    @Column_("text", {nullable: false})
+    name2!: string
+
+    @Column_("text", {nullable: false})
+    symbol1!: string
+
+    @Column_("text", {nullable: false})
+    symbol2!: string
+
+    @Index_()
+    @Column_("bool", {nullable: false})
+    verified!: boolean
 }

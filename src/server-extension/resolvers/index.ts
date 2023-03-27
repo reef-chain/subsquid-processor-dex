@@ -147,14 +147,14 @@ export class FeeObject {
 
 @ObjectType()
 export class PoolInfo {
-  @Field(() => [FeeObject], { nullable: false })
-  fee!: FeeObject[];
+  @Field(() => FeeObject, { nullable: false })
+  fee!: FeeObject;
 
-  @Field(() => [VolumeObject], { nullable: false })
-  currentDayVolume!: VolumeObject[];
+  @Field(() => VolumeObject, { nullable: false })
+  currentDayVolume!: VolumeObject;
 
-  @Field(() => [VolumeObject], { nullable: false })
-  previousDayVolume!: VolumeObject[];
+  @Field(() => VolumeObject, { nullable: false })
+  previousDayVolume!: VolumeObject;
 
   @Field(() => ReservesObject, { nullable: false })
   reserves!: ReservesObject;
@@ -169,7 +169,6 @@ export class PoolInfo {
     Object.assign(this, props);
   }
 }
-
 
 @Resolver()
 export class PoolResolver {
@@ -379,45 +378,33 @@ export class PoolResolver {
 
     const queryFee = `
       SELECT SUM(fee1) AS fee1, SUM(fee2) AS fee2
-      FROM pool_day_fee
-      WHERE pool_id = $1 AND timeframe >= $2
-      GROUP BY timeframe
+      FROM (
+        SELECT DISTINCT ON (timeframe) fee1, fee2, timeframe
+        FROM pool_day_fee
+        WHERE (pool_id = $1 AND timeframe >= $2)
+      ) t
     `;
     let resultFee = await manager.query(queryFee, [address, toTime]);
-    resultFee = resultFee.map((row: any) => {
-      return new FeeObject({
-        fee1: row.fee1,
-        fee2: row.fee2
-      });
-    });
 
     const queryCurrentDayVolume = `
       SELECT SUM(amount1) AS amount1, SUM(amount2) AS amount2
-      FROM pool_day_volume
-      WHERE pool_id = $1 AND timeframe >= $2
-      GROUP BY timeframe
+      FROM (
+        SELECT DISTINCT ON (timeframe) amount1, amount2, timeframe
+        FROM pool_day_volume
+        WHERE (pool_id = $1 AND timeframe >= $2)
+      ) t
     `;
     let resultCurrentDayVolume = await manager.query(queryCurrentDayVolume, [address, toTime]);
-    resultCurrentDayVolume = resultCurrentDayVolume.map((row: any) => {
-      return new VolumeObject({
-        amount1: row.amount1,
-        amount2: row.amount2
-      });
-    });
 
     const queryPreviousDayVolume = `
       SELECT SUM(amount1) AS amount1, SUM(amount2) AS amount2
-      FROM pool_day_volume
-      WHERE pool_id = $1 AND timeframe >= $2 AND timeframe < $3
-      GROUP BY timeframe
+      FROM (
+        SELECT DISTINCT ON (timeframe) amount1, amount2, timeframe
+        FROM pool_day_volume
+        WHERE (pool_id = $1 AND timeframe >= $2 AND timeframe < $3)
+      ) t
     `;
     let resultPreviousDayVolume = await manager.query(queryPreviousDayVolume, [address, fromTime, toTime]);
-    resultPreviousDayVolume = resultPreviousDayVolume.map((row: any) => {
-      return new VolumeObject({
-        amount1: row.amount1,
-        amount2: row.amount2
-      });
-    });
 
     const queryReserves = `
       SELECT reserved1, reserved2

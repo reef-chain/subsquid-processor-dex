@@ -7,6 +7,11 @@ type Pool @entity {
   poolDecimal: Int!
   decimal1: Int!
   decimal2: Int!
+  name1: String!
+  name2: String!
+  symbol1: String!
+  symbol2: String!
+  verified: Boolean! @index
 }
 
 type PoolEvent @entity {
@@ -15,7 +20,7 @@ type PoolEvent @entity {
   pool: Pool! @index
   toAddress: String @index
   senderAddress: String @index
-  sigerAddress: String @index
+  signerAddress: String @index
   type: PoolType! @index
   amount1: BigInt @index
   amount2: BigInt @index

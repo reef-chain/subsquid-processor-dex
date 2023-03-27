@@ -6,7 +6,7 @@ const verificationApi = axios.create({ baseURL: `${process.env.VERIFICATION_API_
 
 export const verifyPool = async (address: string, blockHeight: number) => {
   try {
-    await verificationApi.post('/', {
+    return await verificationApi.post('/', {
       name: 'ReefswapV2Pair',
       runs: 999999,
       source: ReefswapV2PairSource,
