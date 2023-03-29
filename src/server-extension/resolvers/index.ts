@@ -3,6 +3,7 @@ import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
 import { BigInteger, BigDecimalScalar, DateTime } from '@subsquid/graphql-server';
 import type { EntityManager } from 'typeorm'
 import BigNumber from 'bignumber.js';
+import { PoolListsResolver } from "./poolLists";
 
 @ObjectType()
 export class Ping {
@@ -450,5 +451,6 @@ export class PoolResolver {
   }
 }
 
-
-
+export {
+  PoolListsResolver
+}
