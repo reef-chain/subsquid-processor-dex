@@ -28,7 +28,7 @@ const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
 console.log('NETWORK=', NETWORK, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
-const START_BLOCK = parseInt(process.env.START_BLOCK || '1');
+const START_BLOCK = parseInt(process.env.START_BLOCK || '1') || 1;
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()

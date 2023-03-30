@@ -114,7 +114,7 @@ class TokenPrices implements MarketHistoryModule {
     const index = this.tokens.indexOf(token);
     if (index === -1) {
       const oldLength = this.tokens.length;
-      // Add token to the listi
+      // Add token to the list
       this.tokens.push(token);
       // Add token to the price vector
       this.priceVector.push(price);

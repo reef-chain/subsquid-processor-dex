@@ -18,7 +18,7 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        0xcA36bA38f2776184242d3652b17bA4A77842707e
+        0x06D7a7334B9329D0750FFd0a636D6C3dFA77E580
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
