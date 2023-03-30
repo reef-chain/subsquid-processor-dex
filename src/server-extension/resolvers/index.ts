@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
+import { Arg, Field, Int, ObjectType, Query, Resolver } from 'type-graphql';
 import { BigInteger, BigDecimalScalar, DateTime } from '@subsquid/graphql-server';
 import type { EntityManager } from 'typeorm'
 import BigNumber from 'bignumber.js';
@@ -167,6 +167,40 @@ export class PoolInfo {
   userSupply!: bigint;
 
   constructor(props: Partial<PoolInfo>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
+export class PoolEventObject {
+  @Field(() => String, { nullable: false })
+  address!: string;
+
+  @Field(() => String, { nullable: false })
+  token1!: string;
+
+  @Field(() => String, { nullable: false })
+  token2!: string;
+
+  @Field(() => BigInteger, { nullable: false })
+  reserved1!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  reserved2!: bigint;
+
+  @Field(() => Int, { nullable: false })
+  decimal1!: number;
+
+  @Field(() => Int, { nullable: false })
+  decimal2!: number;
+
+  @Field(() => String, { nullable: false })
+  symbol1!: string;
+
+  @Field(() => String, { nullable: false })
+  symbol2!: string;
+
+  constructor(props: Partial<PoolEventObject>) {
     Object.assign(this, props);
   }
 }
@@ -447,6 +481,22 @@ export class PoolResolver {
       userSupply: resultUserSupply[0].supply || 0n,
     });
 
+    return result;
+  }
+
+  @Query(() => [PoolEventObject])
+  async allPools(): Promise<PoolEventObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (pool_id) reserved1, reserved2, p.id as address,
+        p.token1, p.token2, p.decimal1, p.decimal2, p.symbol1, p.symbol2 
+      FROM pool_event AS pe
+      JOIN pool AS p ON pe.pool_id = p.id
+      WHERE pe.type = 'Sync'
+      ORDER BY pool_id ASC, timestamp DESC
+    `;
+    const result = await manager.query(query);
     return result;
   }
 }

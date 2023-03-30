@@ -13,7 +13,7 @@ type CandlestickPoolBlock = [
   BigNumber, // close
 ]
 
-// Pool id and token address are formated like -> `poolId:tokenAddres`
+// Pool id and token address are formatted like -> `poolId:tokenAddress`
 type CandlestickBlock = {
   [poolIdAndTokenAddress: string]: CandlestickPoolBlock;
 };
