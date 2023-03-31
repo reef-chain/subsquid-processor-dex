@@ -92,12 +92,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     await ctx.store.save(pool);
 
     if (FactoryEvent.verify) {
-      verifyPool(this.poolAddress, this.blockHeight!).then((res) => {
-        if (res?.data === 'Verified') {
-          pool.verified = true;
-          ctx.store.save(pool);
-        }
-      });
+      verifyPool(pool, this.blockHeight!);
     }
   }
 

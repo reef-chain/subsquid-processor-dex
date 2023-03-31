@@ -21,6 +21,7 @@ import SyncEvent from "./process/events/SyncEvent";
 import TransferEvent from "./process/events/TransferEvent";
 import EmptyEvent from "./process/events/EmptyEvent";
 import { Pool } from "./model";
+import { verifyAll } from "./process/events/poolVerification";
 
 const NETWORK = process.env.NETWORK || 'mainnet';
 const RPC_URL = process.env.NODE_RPC_WS;
@@ -29,6 +30,7 @@ const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
 console.log('NETWORK=', NETWORK, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
 const START_BLOCK = parseInt(process.env.START_BLOCK || '1') || 1;
+const VERIFICATION_BATCH_INTERVAL = parseInt(process.env.VERIFICATION_BATCH_INTERVAL || '0');
 
 const database = new TypeormDatabase();
 const processor = new SubstrateBatchProcessor()
@@ -58,17 +60,25 @@ export let ctx: Context;
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 let isFirstBatch = true;
+let nextBatchVerification = VERIFICATION_BATCH_INTERVAL;
 
 processor.run(database, async (ctx_) => {
   ctx = ctx_;
 
+  const currentBlock = ctx.blocks[0].header.height;
+
   if (isFirstBatch) {
     // Initialize token prices on previous block
-    const currentBlock = ctx.blocks[0].header.height;
     await MarketHistory.init(currentBlock - 1);
     FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
 
     isFirstBatch = false;
+  }
+
+  // Verify all unverified every n blocks
+  if (nextBatchVerification && currentBlock >= nextBatchVerification) {
+    verifyAll();
+    nextBatchVerification += VERIFICATION_BATCH_INTERVAL;
   }
   
   for (const block of ctx.blocks) {

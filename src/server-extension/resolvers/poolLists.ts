@@ -97,10 +97,10 @@ export class VerifiedPoolsWithUserLP {
     @Field(() => String, { nullable: false })
     token2!: string;
 
-    @Field(() => String, { nullable: false })
+    @Field(() => String, { nullable: true })
     reserved1!: string;
 
-    @Field(() => String, { nullable: false })
+    @Field(() => String, { nullable: true })
     reserved2!: string;
 
     @Field(() => Number, { nullable: false })

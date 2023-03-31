@@ -205,6 +205,33 @@ export class PoolEventObject {
   }
 }
 
+@ObjectType()
+export class PoolVolumeObject {
+  @Field(() => BigInteger, { nullable: false })
+  amount1!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  amount2!: bigint;
+
+  constructor(props: Partial<PoolVolumeObject>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
+export class PoolFeeObject {
+  @Field(() => BigInteger, { nullable: false })
+  fee1!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  fee2!: bigint;
+
+  constructor(props: Partial<PoolFeeObject>) {
+    Object.assign(this, props);
+  }
+}
+
+
 @Resolver()
 export class PoolResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
@@ -476,9 +503,9 @@ export class PoolResolver {
       fee: resultFee,
       currentDayVolume: resultCurrentDayVolume,
       previousDayVolume: resultPreviousDayVolume,
-      reserves: resultReserves[0],
-      totalSupply: resultTotalSupply[0].total_supply || 0n,
-      userSupply: resultUserSupply[0].supply || 0n,
+      reserves: resultReserves[0] || 0n,
+      totalSupply: resultTotalSupply[0]?.total_supply || 0n,
+      userSupply: resultUserSupply[0]?.supply || 0n,
     });
 
     return result;
@@ -498,6 +525,51 @@ export class PoolResolver {
     `;
     const result = await manager.query(query);
     return result;
+  }
+
+  @Query(() => PoolVolumeObject)
+  async poolVolume(
+    @Arg('address') address: string,
+    @Arg('fromTime') fromTime: string,
+    @Arg('toTime') toTime: string
+  ): Promise<PoolVolumeObject> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT SUM(amount1) AS sum_amount1, SUM(amount2) AS sum_amount2
+      FROM pool_hour_volume
+      WHERE pool_id = $1 AND timeframe >= $2 AND timeframe < $3;
+    `;
+    const resultQuery = await manager.query(query, [address, fromTime, toTime]);
+    
+    const result =  new PoolVolumeObject({
+      amount1: resultQuery[0].sum_amount1 || 0n,
+      amount2: resultQuery[0].sum_amount2 || 0n
+    });
+
+    return result;    
+  }
+
+  @Query(() => PoolFeeObject)
+  async poolFee(
+    @Arg('address') address: string,
+    @Arg('fromTime') fromTime: string,
+  ): Promise<PoolFeeObject> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT SUM(amount1) AS sum_fee1, SUM(amount2) AS sum_fee2
+      FROM pool_hour_volume
+      WHERE pool_id = $1 AND timeframe >= $2;
+    `;
+    const resultQuery = await manager.query(query, [address, fromTime]);
+    
+    const result =  new PoolFeeObject({
+      fee1: resultQuery[0].sum_fee1 || 0n,
+      fee2: resultQuery[0].sum_fee2 || 0n
+    });
+
+    return result;    
   }
 }
 
