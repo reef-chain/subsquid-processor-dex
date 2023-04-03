@@ -100,6 +100,52 @@ export class CandlestickObject {
 }
 
 @ObjectType()
+export class PoolCandlestickObject {
+  @Field(() => String, { nullable: true })
+  poolId!: string;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  close1!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  close2!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  high1!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  high2!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  open1!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  open2!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  low1!: BigNumber;
+
+  @Field(() => BigDecimalScalar, { nullable: true })
+  low2!: BigNumber;
+
+  @Field(() => Int, { nullable: true })
+  whichToken!: number;
+
+  @Field(() => String, { nullable: true })
+  token1!: string;
+
+  @Field(() => String, { nullable: true })
+  token2!: string;
+
+  @Field(() => DateTime, { nullable: true })
+  timeframe!: Date;
+
+  constructor(props: Partial<PoolCandlestickObject>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
 export class PoolData {
   @Field(() => [CandlestickObject], { nullable: false })
   candlestick1!: CandlestickObject[];
@@ -226,7 +272,23 @@ export class PoolFeeObject {
   @Field(() => BigInteger, { nullable: false })
   fee2!: bigint;
 
+  @Field(() => DateTime, { nullable: true })
+  timeframe!: Date;
+
   constructor(props: Partial<PoolFeeObject>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
+export class PoolSupplyObject {
+  @Field(() => BigInteger, { nullable: false })
+  totalSupply!: bigint;
+
+  @Field(() => DateTime, { nullable: false })
+  timeframe!: Date;
+
+  constructor(props: Partial<PoolSupplyObject>) {
     Object.assign(this, props);
   }
 }
@@ -570,6 +632,89 @@ export class PoolResolver {
     });
 
     return result;    
+  }
+
+  @Query(() => [PoolCandlestickObject])
+  async poolLastCandlestick(
+    @Arg('address') address: string,
+    @Arg('whichToken') whichToken: number,
+    @Arg('fromTime') fromTime: string,
+  ): Promise<PoolCandlestickObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (timeframe) pool_id, timeframe, close1, close2, high1, high2, low1, low2,
+        open1, open2, which_token, pool.token1, pool.token2
+      FROM pool_day_candlestick AS pc
+        INNER JOIN pool ON pc.pool_id = pool.id
+      WHERE pool.id = $1 AND which_token = $2 AND timeframe <= $3
+      ORDER BY timeframe DESC
+      LIMIT 1;
+    `;
+    const resultQuery = await manager.query(query, [address, whichToken, fromTime]);
+    
+    return resultQuery;
+  }
+
+  @Query(() => [PoolCandlestickObject])
+  async poolTimeCandlestick(
+    @Arg('address') address: string,
+    @Arg('whichToken') whichToken: number,
+    @Arg('fromTime') fromTime: string,
+    @Arg('time') time: string,
+  ): Promise<PoolCandlestickObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (timeframe) pool_id, timeframe, close1, close2, high1, high2, low1, low2,
+        open1, open2, which_token, pool.token1, pool.token2
+      FROM pool_{time}_candlestick AS pc
+        INNER JOIN pool ON pc.pool_id = pool.id
+      WHERE pool.id = $1 AND which_token = $2 AND timeframe >= $3
+      ORDER BY timeframe ASC
+      LIMIT 1;
+    `;
+    const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, whichToken, fromTime]);
+    
+    return resultQuery;
+  }
+
+  @Query(() => [PoolFeeObject])
+  async poolTimeFees(
+    @Arg('address') address: string,
+    @Arg('fromTime') fromTime: string,
+    @Arg('time') time: string,
+  ): Promise<PoolFeeObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (timeframe) fee1, fee2, timeframe
+      FROM pool_{time}_fee
+      WHERE pool_id = $1 AND timeframe >= $2
+      ORDER BY timeframe ASC;
+    `;
+    const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, fromTime]);
+  
+    return resultQuery;    
+  }
+
+  @Query(() => [PoolSupplyObject])
+  async poolTimeSupply(
+    @Arg('address') address: string,
+    @Arg('fromTime') fromTime: string,
+    @Arg('time') time: string,
+  ): Promise<PoolSupplyObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (timeframe) total_supply, timeframe
+      FROM pool_{time}_supply
+      WHERE pool_id = $1 AND timeframe >= $2
+      ORDER BY timeframe ASC;
+    `;
+    const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, fromTime]);
+
+    return resultQuery;
   }
 }
 
