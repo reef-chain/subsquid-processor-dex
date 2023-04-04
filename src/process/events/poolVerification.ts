@@ -36,8 +36,13 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
     } else {
       ctx.log.error(`Failed to verify pool ${pool.id}`);
     }
-  } catch (e) {
-    ctx.log.error(`Failed to verify pool ${pool.id}`);
+  } catch (e: any) {
+    if (e?.response?.data?.error === 'Contract already verified') {
+      pool.verified = true;
+      ctx.store.save(pool);
+    } else {
+      ctx.log.error(`Failed to verify pool ${pool.id}`);
+    }
   }
 };
 
