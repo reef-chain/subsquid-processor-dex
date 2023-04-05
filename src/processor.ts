@@ -23,11 +23,10 @@ import EmptyEvent from "./process/events/EmptyEvent";
 import { Pool } from "./model";
 import { verifyAll } from "./process/events/poolVerification";
 
-const NETWORK = process.env.NETWORK || 'mainnet';
 const RPC_URL = process.env.NODE_RPC_WS;
 const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
-console.log('NETWORK=', NETWORK, ' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
+console.log(' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
 const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
 const START_BLOCK = parseInt(process.env.START_BLOCK || '1') || 1;
 const VERIFICATION_BATCH_INTERVAL = parseInt(process.env.VERIFICATION_BATCH_INTERVAL || '0');

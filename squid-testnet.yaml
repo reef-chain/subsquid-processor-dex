@@ -18,17 +18,18 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        0x06D7a7334B9329D0750FFd0a636D6C3dFA77E580
+        "0x06D7a7334B9329D0750FFd0a636D6C3dFA77E580"
       VERIFY_POOLS:
         true
       VERIFICATION_API_URL:
         https://api-testnet.reefscan.com/
       VERIFICATION_BATCH_INTERVAL:
         10000
+      START_BLOCK:
+        1
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
-  secrets:
 
 scale:
   addons:
