@@ -73,11 +73,12 @@ processor.run(database, async (ctx_) => {
     FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
 
     isFirstBatch = false;
+    nextBatchVerification = currentBlock + VERIFICATION_BATCH_INTERVAL;
   }
 
   // Verify all unverified every n blocks
   if (nextBatchVerification && currentBlock >= nextBatchVerification) {
-    verifyAll();
+    await verifyAll();
     nextBatchVerification += VERIFICATION_BATCH_INTERVAL;
   }
   

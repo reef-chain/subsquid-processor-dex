@@ -92,7 +92,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     await ctx.store.save(pool);
 
     if (FactoryEvent.verify) {
-      verifyPool(pool, this.blockHeight!);
+      await verifyPool(pool, this.blockHeight!);
     }
   }
 

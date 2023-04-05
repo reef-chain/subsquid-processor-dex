@@ -40,8 +40,9 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
     if (e?.response?.data?.error === 'Contract already verified') {
       pool.verified = true;
       ctx.store.save(pool);
+      console.log(`Pool ${pool.id} already verified`)
     } else {
-      ctx.log.error(`Failed to verify pool ${pool.id}`);
+      ctx.log.error(`Failed to verify pool ${pool.id}: ${e?.response?.data?.error} || ${e?.response?.data} || ${e}`);
     }
   }
 };

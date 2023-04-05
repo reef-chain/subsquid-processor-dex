@@ -19,6 +19,12 @@ deploy:
         reef
       FACTORY_ADDRESS:
         0x380a9033500154872813F6E1120a81ed6c0760a8
+      VERIFY_POOLS:
+        true
+      VERIFICATION_API_URL:
+        https://api.reefscan.com/
+      VERIFICATION_BATCH_INTERVAL:
+        10000
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
