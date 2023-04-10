@@ -31,12 +31,12 @@ deploy:
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
 
-#scale:
-#  addons:
-#    postgres:
-#      profile:
-#        large
-#
+scale:
+ addons:
+   postgres:
+     storage: 100Gi
+     profile: large
+
 #deploy:
 #  addons:
 #    postgres:
@@ -59,7 +59,7 @@ deploy:
 #scale:
 #  addons:
 #    postgres:
-#      storage: 100G
+#      storage: 100Gi
 #      profile: medium
 #  processor:
 #    profile: medium

@@ -42,7 +42,7 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
       ctx.store.save(pool);
       console.log(`Pool ${pool.id} already verified`)
     } else {
-      ctx.log.error(`Failed to verify pool ${pool.id}: ${e?.response?.data?.error} || ${e?.response?.data} || ${e}`);
+      ctx.log.error(`Failed to verify pool ${pool.id}: ${e?.response?.data?.error || e?.response?.data || e}`);
     }
   }
 };

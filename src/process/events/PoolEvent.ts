@@ -30,6 +30,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
   toAddress?: string;
   senderAddress?: string;
   signerAddress?: string;
+  hash?: string;
   amount1?: string;
   amount2?: string;
   amountIn1?: string;
@@ -45,6 +46,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     this.poolId = pairData.poolId;
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
+    this.hash = pairData.extrinsic?.hash;
     if (type === PoolType.Transfer && pairData.extrinsic?.signature?.address?.value) {
       this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address.value);
     }
@@ -66,6 +68,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
       toAddress: this.toAddress,
       senderAddress: this.senderAddress,
       signerAddress: this.signerAddress,
+      hash: this.hash,
       type: this.type,
       amount1: BigInt(this.amount1 || '0'),
       amount2: BigInt(this.amount2 || '0'),

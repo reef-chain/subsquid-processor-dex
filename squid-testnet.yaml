@@ -59,7 +59,7 @@ scale:
 #scale:
 #  addons:
 #    postgres:
-#      storage: 100G
+#      storage: 100Gi
 #      profile: medium
 #  processor:
 #    profile: medium

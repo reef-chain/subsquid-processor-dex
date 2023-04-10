@@ -21,6 +21,7 @@ type PoolEvent @entity {
   toAddress: String @index
   senderAddress: String @index
   signerAddress: String @index
+  hash: String
   type: PoolType! @index
   amount1: BigInt @index
   amount2: BigInt @index

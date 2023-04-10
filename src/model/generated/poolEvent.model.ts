@@ -31,6 +31,9 @@ export class PoolEvent {
     @Column_("text", {nullable: true})
     signerAddress!: string | undefined | null
 
+    @Column_("text", {nullable: true})
+    hash!: string | undefined | null
+
     @Index_()
     @Column_("varchar", {length: 8, nullable: false})
     type!: PoolType
