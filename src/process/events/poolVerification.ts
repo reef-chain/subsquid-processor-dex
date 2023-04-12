@@ -9,6 +9,7 @@ export const verifyAll = async() => {
   const unverifiedPools = await ctx.store.find(Pool, {
     where: { verified: false }
   });
+  ctx.log.info(`Submitting verification for ${unverifiedPools.length} pools`);
   for (const pool of unverifiedPools) {
     await verifyPool(pool, ctx.blocks[0].header.height)    
   }
@@ -33,6 +34,7 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
     if (res?.data === 'Verified') {
       pool.verified = true;
       ctx.store.save(pool);
+      ctx.log.info(`Pool ${pool.id} has been verified`)
     } else {
       ctx.log.error(`Failed to verify pool ${pool.id}`);
     }
@@ -40,7 +42,7 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
     if (e?.response?.data?.error === 'Contract already verified') {
       pool.verified = true;
       ctx.store.save(pool);
-      console.log(`Pool ${pool.id} already verified`)
+      ctx.log.info(`Pool ${pool.id} already verified`)
     } else {
       ctx.log.error(`Failed to verify pool ${pool.id}: ${e?.response?.data?.error || e?.response?.data || e}`);
     }
