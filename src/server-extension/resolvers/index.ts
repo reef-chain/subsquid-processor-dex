@@ -483,9 +483,9 @@ export class PoolResolver {
       fee: resultFee,
       volume: resultVolume,
       reserves: resultReserves,
-      previousReserves: resultPreviousReserves[0],
-      previousCandlestick1: resultPreviousCandlestick1[0],
-      previousCandlestick2: resultPreviousCandlestick2[0],
+      previousReserves: resultPreviousReserves[0] || {},
+      previousCandlestick1: resultPreviousCandlestick1[0] || {},
+      previousCandlestick2: resultPreviousCandlestick2[0] || {},
     });
 
     return result;
@@ -562,9 +562,9 @@ export class PoolResolver {
     let resultUserSupply = await manager.query(queryUserSupply, [address, signerAddress]);
 
     const result = new PoolInfo({
-      fee: resultFee[0],
-      currentDayVolume: resultCurrentDayVolume[0],
-      previousDayVolume: resultPreviousDayVolume[0],
+      fee: resultFee[0] || {},
+      currentDayVolume: resultCurrentDayVolume[0] || {},
+      previousDayVolume: resultPreviousDayVolume[0] || {},
       reserves: resultReserves[0] || 0n,
       totalSupply: resultTotalSupply[0]?.total_supply || 0n,
       userSupply: resultUserSupply[0]?.supply || 0n,
