@@ -26,9 +26,9 @@ module.exports = class Data1700000000000 {
                     CASE 
                     WHEN pe.amount_in2 > 0
                     THEN (
-                    pe.amount1 / POWER(10, pl.decimal1)::decimal
+                        pe.amount1 / POWER(10, pl.decimal1)::decimal
                     ) / (
-                    pe.amount_in2 / POWER(10, pl.decimal2)::decimal
+                        pe.amount_in2 / POWER(10, pl.decimal2)::decimal
                     )
                     ELSE -1
                     END
@@ -777,7 +777,7 @@ module.exports = class Data1700000000000 {
         await db.query(`CREATE VIEW fee_day AS SELECT * FROM fee_window('day')`)
         await db.query(`CREATE VIEW fee_week AS SELECT * FROM fee_window('week')`)
 
-        // Calculating change between current and previou value
+        // Calculating change between current and previous value
         await db.query(`
             CREATE FUNCTION change (currentAmount NUMERIC, previousAmount NUMERIC)
             RETURNS NUMERIC AS $$

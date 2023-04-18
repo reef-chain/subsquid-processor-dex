@@ -355,16 +355,17 @@ export class PoolResolver {
   @Query(() => PoolData)
   async poolData(
     @Arg('address') address: string,
-    @Arg('fromTime') fromTime: string
+    @Arg('fromTime') fromTime: string,
+    @Arg('time') time: string,
   ): Promise<PoolData> {
     const manager = await this.tx();
 
     const queryCandlestick1 = `
       SELECT DISTINCT ON (timeframe) close1, high1, open1, low1, timeframe
-      FROM pool_day_candlestick
+      FROM pool_{time}_candlestick
       WHERE which_token = 1 AND pool_id = $1 AND timeframe >= $2
     `;
-    let resultCandlestick1 = await manager.query(queryCandlestick1, [address, fromTime]);
+    let resultCandlestick1 = await manager.query(queryCandlestick1.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultCandlestick1 = resultCandlestick1.map((row: any) => {
       return new CandlestickObject({
         close: row.close1,
@@ -377,10 +378,10 @@ export class PoolResolver {
 
     const queryCandlestick2 = `
       SELECT DISTINCT ON (timeframe) close2, high2, open2, low2, timeframe
-      FROM pool_day_candlestick
+      FROM pool_{time}_candlestick
       WHERE which_token = 2 AND pool_id = $1 AND timeframe >= $2
     `;
-    let resultCandlestick2 = await manager.query(queryCandlestick2, [address, fromTime]);
+    let resultCandlestick2 = await manager.query(queryCandlestick2.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultCandlestick2 = resultCandlestick2.map((row: any) => {
       return new CandlestickObject({
         close: row.close2,
@@ -393,10 +394,10 @@ export class PoolResolver {
 
     const queryFee = `
       SELECT DISTINCT ON (timeframe) fee1, fee2, timeframe
-      FROM pool_day_fee
+      FROM pool_{time}_fee
       WHERE pool_id = $1 AND timeframe >= $2
     `;
-    let resultFee = await manager.query(queryFee, [address, fromTime]);
+    let resultFee = await manager.query(queryFee.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultFee = resultFee.map((row: any) => {
       return new FeeObject({
         fee1: row.fee1,
@@ -407,10 +408,10 @@ export class PoolResolver {
 
     const queryVolume = `
       SELECT DISTINCT ON (timeframe) amount1, amount2, timeframe
-      FROM pool_day_volume
+      FROM pool_{time}_volume
       WHERE pool_id = $1 AND timeframe >= $2
     `;
-    let resultVolume = await manager.query(queryVolume, [address, fromTime]);
+    let resultVolume = await manager.query(queryVolume.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultVolume = resultVolume.map((row: any) => {
       return new VolumeObject({
         amount1: row.amount1,
@@ -421,10 +422,10 @@ export class PoolResolver {
 
     const queryReserves = `
       SELECT DISTINCT ON (timeframe) reserved1, reserved2, timeframe
-      FROM pool_day_locked
+      FROM pool_{time}_locked
       WHERE pool_id = $1 AND timeframe >= $2
     `;
-    let resultReserves = await manager.query(queryReserves, [address, fromTime]);
+    let resultReserves = await manager.query(queryReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultReserves = resultReserves.map((row: any) => {
       return new ReservesObject({
         reserved1: row.reserved1,
@@ -435,12 +436,12 @@ export class PoolResolver {
 
     const queryPreviousReserves = `
       SELECT reserved1, reserved2, timeframe
-      FROM pool_day_locked
+      FROM pool_{time}_locked
       WHERE pool_id = $1 AND timeframe < $2
       ORDER BY timeframe DESC
       LIMIT 1
     `;
-    let resultPreviousReserves = await manager.query(queryPreviousReserves, [address, fromTime]);
+    let resultPreviousReserves = await manager.query(queryPreviousReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultPreviousReserves = resultPreviousReserves.map((row: any) => {
       return new ReservesObject({
         reserved1: row.reserved1,
@@ -451,12 +452,12 @@ export class PoolResolver {
 
     const queryPreviousCandlestick1 = `
       SELECT close1
-      FROM pool_day_candlestick
+      FROM pool_{time}_candlestick
       WHERE which_token = 1 AND pool_id = $1 AND timeframe < $2
       ORDER BY timeframe DESC
       LIMIT 1
     `;
-    let resultPreviousCandlestick1 = await manager.query(queryPreviousCandlestick1, [address, fromTime]);
+    let resultPreviousCandlestick1 = await manager.query(queryPreviousCandlestick1.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultPreviousCandlestick1 = resultPreviousCandlestick1.map((row: any) => {
       return new CandlestickObject({
         close: row.close1,
@@ -465,12 +466,12 @@ export class PoolResolver {
 
     const queryPreviousCandlestick2 = `
       SELECT close2
-      FROM pool_day_candlestick
+      FROM pool_{time}_candlestick
       WHERE which_token = 2 AND pool_id = $1 AND timeframe < $2
       ORDER BY timeframe DESC
       LIMIT 1
     `;
-    let resultPreviousCandlestick2 = await manager.query(queryPreviousCandlestick2, [address, fromTime]);
+    let resultPreviousCandlestick2 = await manager.query(queryPreviousCandlestick2.replace('{time}', time.toLowerCase()), [address, fromTime]);
     resultPreviousCandlestick2 = resultPreviousCandlestick2.map((row: any) => {
       return new CandlestickObject({
         close: row.close2,
