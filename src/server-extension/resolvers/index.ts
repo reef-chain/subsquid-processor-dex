@@ -246,6 +246,12 @@ export class PoolEventObject {
   @Field(() => String, { nullable: false })
   symbol2!: string;
 
+  @Field(() => String, { nullable: false })
+  name1!: string;
+
+  @Field(() => String, { nullable: false })
+  name2!: string;
+
   constructor(props: Partial<PoolEventObject>) {
     Object.assign(this, props);
   }
@@ -580,7 +586,7 @@ export class PoolResolver {
 
     const query = `
       SELECT DISTINCT ON (pool_id) reserved1, reserved2, p.id as address,
-        p.token1, p.token2, p.decimal1, p.decimal2, p.symbol1, p.symbol2 
+        p.token1, p.token2, p.decimal1, p.decimal2, p.symbol1, p.symbol2, p.name1, p.name2
       FROM pool_event AS pe
       JOIN pool AS p ON pe.pool_id = p.id
       WHERE pe.type = 'Sync'
