@@ -83,6 +83,7 @@ processor.run(database, async (ctx_) => {
   }
   
   for (const block of ctx.blocks) {
+    ctx.log.info(`Processing block ${block.header.height} [${ctx.blocks[0].header.height} - ${ctx.blocks[ctx.blocks.length - 1].header.height}]`);
     // Process block events
     for (const item of block.items) {
       if (item.name === 'EVM.Log') {
@@ -109,6 +110,7 @@ processor.run(database, async (ctx_) => {
         }
       }
     }
+    ctx.log.info(`Block ${block.header.height} processed`);
 
     // Update token prices and insert new values
     await MarketHistory.save(block.header);
