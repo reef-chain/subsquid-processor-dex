@@ -2,9 +2,9 @@
 module.exports = class Data1700000000000 {
     name = 'Data1700000000000'
 
-    // Additional pool ratio function, which calculates the ratio between buy and sell amount
-    // It has an additional field (which_token) to indicate for which token ration was calculated
     async up(db) {
+        // Additional pool ratio function, which calculates the ratio between buy and sell amount
+        // It has an additional field (which_token) to indicate for which token ration was calculated
         await db.query(`
             CREATE FUNCTION pool_ratio (duration text)
             RETURNS TABLE (
@@ -16,41 +16,40 @@ module.exports = class Data1700000000000 {
                 which_token int
             )
             as $$
-            begin
-                return query
+            begin return query
                 SELECT 
-                pe.pool_id,
-                date_trunc(duration, pe.timestamp),
-                pe.timestamp,
-                (
-                    CASE 
-                    WHEN pe.amount_in2 > 0
-                    THEN (
-                        pe.amount1 / POWER(10, pl.decimal1)::decimal
-                    ) / (
-                        pe.amount_in2 / POWER(10, pl.decimal2)::decimal
-                    )
-                    ELSE -1
-                    END
-                ),
-                (
-                    CASE
-                    WHEN pe.amount_in1 > 0
-                    THEN (
-                        pe.amount2 / POWER(10, pl.decimal2)::decimal
-                    ) / (
-                        pe.amount_in1 / POWER(10, pl.decimal1)::decimal
-                    )
-                    ELSE 1
-                    END
-                ),
-                (
-                    CASE
-                    WHEN pe.amount_in2 > 0
-                    THEN 1
-                    ELSE 2
-                    END
-                ) 
+                    pe.pool_id,
+                    date_trunc(duration, pe.timestamp),
+                    pe.timestamp,
+                    (
+                        CASE 
+                        WHEN pe.amount_in2 > 0
+                        THEN (
+                            pe.amount1 / POWER(10, pl.decimal1)::decimal
+                        ) / (
+                            pe.amount_in2 / POWER(10, pl.decimal2)::decimal
+                        )
+                        ELSE -1
+                        END
+                    ),
+                    (
+                        CASE
+                        WHEN pe.amount_in1 > 0
+                        THEN (
+                            pe.amount2 / POWER(10, pl.decimal2)::decimal
+                        ) / (
+                            pe.amount_in1 / POWER(10, pl.decimal1)::decimal
+                        )
+                        ELSE 1
+                        END
+                    ),
+                    (
+                        CASE
+                        WHEN pe.amount_in2 > 0
+                        THEN 1
+                        ELSE 2
+                        END
+                    ) 
                 FROM pool_event as pe
                 JOIN pool as pl
                 ON pe.pool_id = pl.id
@@ -77,8 +76,7 @@ module.exports = class Data1700000000000 {
                 close2 decimal
             )
             AS $$
-            BEGIN
-                RETURN QUERY  
+            BEGIN RETURN QUERY  
                 SELECT
                     p.timeframe,
                     p.pool_id,
@@ -113,17 +111,16 @@ module.exports = class Data1700000000000 {
                 supply numeric
             )
             AS $$
-            BEGIN
-            RETURN QUERY
-            SELECT
-                pe.timestamp,
-                date_trunc(duration, pe.timestamp),
-                pe.pool_id,
-                pe.total_supply,
-                pe.supply
-            FROM pool_event as pe
-            WHERE pe.type = 'Transfer'
-            ORDER BY timestamp;
+            BEGIN RETURN QUERY
+                SELECT
+                    pe.timestamp,
+                    date_trunc(duration, pe.timestamp),
+                    pe.pool_id,
+                    pe.total_supply,
+                    pe.supply
+                FROM pool_event as pe
+                WHERE pe.type = 'Transfer'
+                ORDER BY timestamp;
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -136,8 +133,7 @@ module.exports = class Data1700000000000 {
                 total_supply numeric
             )
             AS $$
-            BEGIN
-                RETURN QUERY
+            BEGIN RETURN QUERY
                 SELECT
                     p.pool_id,
                     p.timeframe,
@@ -165,16 +161,15 @@ module.exports = class Data1700000000000 {
                 amount2 numeric
             )
             AS $$
-            BEGIN
-            RETURN QUERY
-            SELECT
-                pe.timestamp,
-                date_trunc(duration, pe.timestamp),
-                pe.pool_id,
-                pe.amount1,
-                pe.amount2
-            FROM pool_event as pe
-            WHERE pe.type = 'Swap';
+            BEGIN RETURN QUERY
+                SELECT
+                    pe.timestamp,
+                    date_trunc(duration, pe.timestamp),
+                    pe.pool_id,
+                    pe.amount1,
+                    pe.amount2
+                FROM pool_event as pe
+                WHERE pe.type = 'Swap';
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -187,15 +182,14 @@ module.exports = class Data1700000000000 {
                 amount2 numeric
             )
             AS $$
-            BEGIN
-            RETURN QUERY
-            SELECT
-                p.pool_id,
-                p.timeframe,
-                SUM(p.amount1) OVER w,
-                SUM(p.amount2) OVER w
-            FROM pool_prepare_volume_data(duration) AS p
-            WINDOW w AS (PARTITION BY p.timeframe, p.pool_id ORDER BY p.timeframe);
+            BEGIN RETURN QUERY
+                SELECT
+                    p.pool_id,
+                    p.timeframe,
+                    SUM(p.amount1) OVER w,
+                    SUM(p.amount2) OVER w
+                FROM pool_prepare_volume_data(duration) AS p
+                WINDOW w AS (PARTITION BY p.timeframe, p.pool_id ORDER BY p.timeframe);
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -215,27 +209,26 @@ module.exports = class Data1700000000000 {
                 fee2 numeric
             )
             AS $$
-            BEGIN
-            RETURN QUERY
-            SELECT
-                pe.pool_id,
-                date_trunc(duration, pe.timestamp),
-                (
-                    CASE
-                        WHEN pe.amount_in1 > 0
-                        THEN pe.amount_in1 * 0.003
-                        ELSE 0
-                    END
-                ),
-                (
-                    CASE
-                        WHEN pe.amount_in2 > 0
-                        THEN pe.amount_in2 * 0.003
-                        ELSE 0
-                    END
-                )
-            FROM pool_event as pe
-            WHERE pe.type = 'Swap';
+            BEGIN RETURN QUERY
+                SELECT
+                    pe.pool_id,
+                    date_trunc(duration, pe.timestamp),
+                    (
+                        CASE
+                            WHEN pe.amount_in1 > 0
+                            THEN pe.amount_in1 * 0.003
+                            ELSE 0
+                        END
+                    ),
+                    (
+                        CASE
+                            WHEN pe.amount_in2 > 0
+                            THEN pe.amount_in2 * 0.003
+                            ELSE 0
+                        END
+                    )
+                FROM pool_event as pe
+                WHERE pe.type = 'Swap';
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -248,8 +241,7 @@ module.exports = class Data1700000000000 {
                 fee2 numeric
             )
             AS $$
-            BEGIN
-                RETURN QUERY
+            BEGIN RETURN QUERY
                 SELECT
                     p.pool_id,
                     p.timeframe,
@@ -278,8 +270,7 @@ module.exports = class Data1700000000000 {
                 reserved2 numeric
             )
             AS $$
-            BEGIN
-                RETURN QUERY
+            BEGIN RETURN QUERY
                 SELECT
                     pe.timestamp,
                     date_trunc(duration, pe.timestamp),
@@ -302,16 +293,21 @@ module.exports = class Data1700000000000 {
                 reserved2 numeric
             )
             AS $$
-            BEGIN
-            RETURN QUERY
-            SELECT
-                p.pool_id,
-                p.timeframe,
-                SUM(p.reserved1),
-                SUM(p.reserved2)
-            FROM pool_prepare_locked_data(duration) as p
-            GROUP BY p.pool_id, p.timeframe
-            ORDER BY p.timeframe;
+            BEGIN RETURN QUERY
+                SELECT
+                    p.pool_id,
+                    max_p.timeframe,
+                    p.reserved1,
+                    p.reserved2
+                FROM 
+                    pool_prepare_locked_data(duration) as p
+                    INNER JOIN (
+                        SELECT p2.pool_id, MAX(p2.timeframe) AS timeframe
+                        FROM pool_prepare_locked_data(duration) as p2
+                        GROUP BY p2.pool_id
+                    ) AS max_p
+                    ON p.pool_id = max_p.pool_id AND p.timeframe = max_p.timeframe
+                ORDER BY p.pool_id;
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -336,14 +332,14 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                c.id,
-                c.token,
-                c.open,
-                c.high,
-                c.low,
-                c.close,
-                date_trunc(duration, c.timestamp),
-                c.timestamp
+                    c.id,
+                    c.token,
+                    c.open,
+                    c.high,
+                    c.low,
+                    c.close,
+                    date_trunc(duration, c.timestamp),
+                    c.timestamp
                 FROM candlestick AS c;
             END; $$ 
             LANGUAGE plpgsql;
@@ -363,13 +359,13 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT DISTINCT ON (c.pool_id, c.token, c.timeframe)
-                c.pool_id,
-                c.token,
+                    c.pool_id,
+                    c.token,
                 FIRST_VALUE(c.open) OVER w,
                 MAX(c.high) OVER w,
                 MIN(c.low) OVER w,
                 LAST_VALUE(c.close) OVER w,
-                c.timeframe
+                    c.timeframe
                 FROM candlestick_prepare(duration) AS c
                 WINDOW w AS (PARTITION BY c.pool_id, c.token, c.timeframe ORDER BY c.timeframe_org)
                 ORDER BY c.pool_id, c.token, c.timeframe, c.timeframe_org DESC;
@@ -415,11 +411,11 @@ module.exports = class Data1700000000000 {
                 timeframe TIMESTAMPTZ
             ) AS $$
             BEGIN RETURN QUERY
-            SELECT DISTINCT ON (v.pool_id, v.timeframe)
-                v.pool_id,
-                SUM(v.volume1) OVER w,
-                SUM(v.volume2) OVER w,
-                v.timeframe
+                SELECT DISTINCT ON (v.pool_id, v.timeframe)
+                    v.pool_id,
+                    SUM(v.volume1) OVER w,
+                    SUM(v.volume2) OVER w,
+                    v.timeframe
                 FROM volume_prepare_raw(duration) AS v
                 WINDOW w AS (PARTITION BY v.pool_id, v.timeframe)
                 ORDER BY v.pool_id, v.timeframe, v.timeframe_org DESC;
@@ -445,11 +441,11 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                r.pool_id,
-                r.reserved1,
-                r.reserved2,
-                date_trunc(duration, r.timestamp),
-                r.timestamp
+                    r.pool_id,
+                    r.reserved1,
+                    r.reserved2,
+                    date_trunc(duration, r.timestamp),
+                    r.timestamp
                 FROM reserved_raw AS r;
             END; $$ 
             LANGUAGE plpgsql;
@@ -465,11 +461,11 @@ module.exports = class Data1700000000000 {
                 timeframe TIMESTAMPTZ
             ) AS $$
             BEGIN RETURN QUERY
-            SELECT DISTINCT ON (r.pool_id, r.timeframe)
-                r.pool_id,
+                SELECT DISTINCT ON (r.pool_id, r.timeframe)
+                    r.pool_id,
                 LAST_VALUE(r.reserved1) OVER w,
                 LAST_VALUE(r.reserved2) OVER w,
-                r.timeframe
+                    r.timeframe
                 FROM reserved_prepare_raw(duration) AS r
                 WINDOW w AS (PARTITION BY r.pool_id, r.timeframe ORDER BY r.timeframe_org)
                 ORDER BY r.pool_id, r.timeframe, r.timeframe_org DESC;
@@ -494,10 +490,10 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                p.token,
-                p.price,
-                date_trunc(duration, p.timestamp),
-                p.timestamp
+                    p.token,
+                    p.price,
+                    date_trunc(duration, p.timestamp),
+                    p.timestamp
                 FROM token_price AS p;
             END; $$ 
             LANGUAGE plpgsql;
@@ -512,13 +508,13 @@ module.exports = class Data1700000000000 {
                 timeframe TIMESTAMPTZ
             ) AS $$
             BEGIN RETURN QUERY
-            SELECT DISTINCT ON (p.token, p.timeframe)
-                p.token,
+                SELECT DISTINCT ON (p.token, p.timeframe)
+                    p.token,
                 LAST_VALUE(p.price) OVER w,
-                p.timeframe
-            FROM token_price_prepare(duration) AS p
-            WINDOW w AS (PARTITION BY p.token, p.timeframe ORDER BY p.timeframe_org)
-            ORDER BY p.token, p.timeframe, p.timeframe_org DESC;
+                    p.timeframe
+                FROM token_price_prepare(duration) AS p
+                WINDOW w AS (PARTITION BY p.token, p.timeframe ORDER BY p.timeframe_org)
+                ORDER BY p.token, p.timeframe, p.timeframe_org DESC;
             END; $$ 
             LANGUAGE plpgsql;
         `)
@@ -551,10 +547,10 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                f.pool_id,
-                f.fee1,
-                f.fee2,
-                date_trunc(duration, f.timestamp)
+                    f.pool_id,
+                    f.fee1,
+                    f.fee2,
+                    date_trunc(duration, f.timestamp)
                 FROM fee_raw as f;
             END; $$ 
             LANGUAGE plpgsql;
@@ -570,10 +566,10 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT DISTINCT ON (f.pool_id, f.timeframe)
-                f.pool_id,
+                    f.pool_id,
                 SUM(f.fee1) OVER w,
                 SUM(f.fee2) OVER w,
-                f.timeframe
+                    f.timeframe
                 FROM fee_prepare_raw(duration) AS f
                 WINDOW w AS (PARTITION BY f.pool_id, f.timeframe);
             END; $$ 
@@ -614,11 +610,11 @@ module.exports = class Data1700000000000 {
                 timeframe TIMESTAMPTZ
             ) AS $$
             BEGIN RETURN QUERY
-            SELECT 
-                v.pool_id,
-                v.volume,
-                date_trunc(duration, v.timestamp)
-            FROM volume AS v;
+                SELECT 
+                    v.pool_id,
+                    v.volume,
+                    date_trunc(duration, v.timestamp)
+                FROM volume AS v;
             END; $$ 
             LANGUAGE plpgsql;
         `)
@@ -633,9 +629,9 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT DISTINCT ON (p.pool_id, p.timeframe)
-                p.pool_id,
+                    p.pool_id,
                 SUM(p.volume) OVER w,
-                p.timeframe
+                    p.timeframe
                 FROM volume_prepare(duration) AS p
                 WINDOW w AS (PARTITION BY p.pool_id, p.timeframe);
             END; $$ 
@@ -678,10 +674,10 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                r.pool_id,
-                r.reserved,
-                date_trunc(duration, r.timestamp),
-                r.timestamp
+                    r.pool_id,
+                    r.reserved,
+                    date_trunc(duration, r.timestamp),
+                    r.timestamp
                 FROM reserved AS r
                 ORDER BY timestamp;
             END; $$ 
@@ -698,9 +694,9 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT DISTINCT ON (p.pool_id, p.timeframe)
-                p.pool_id,
+                    p.pool_id,
                 LAST_VALUE(p.reserved) OVER w,
-                p.timeframe
+                    p.timeframe
                 FROM reserved_prepare(duration) AS p
                 WINDOW w AS (PARTITION BY p.pool_id, p.timeframe ORDER BY p.timeframe_org)
                 ORDER BY p.pool_id, p.timeframe, p.timeframe_org DESC;
@@ -743,9 +739,9 @@ module.exports = class Data1700000000000 {
             ) AS $$
             BEGIN RETURN QUERY
                 SELECT 
-                f.pool_id,
-                f.fee,
-                date_trunc(duration, f.timestamp)
+                    f.pool_id,
+                    f.fee,
+                    date_trunc(duration, f.timestamp)
                 FROM fee AS f
                 ORDER BY timestamp;
             END; $$ 
@@ -761,12 +757,12 @@ module.exports = class Data1700000000000 {
                 timeframe TIMESTAMPTZ
             ) AS $$
             BEGIN RETURN QUERY
-            SELECT DISTINCT ON (p.pool_id, p.timeframe)
-                p.pool_id,
-                SUM(p.fee) OVER w,
-                p.timeframe
-            FROM fee_prepare(duration) AS p
-            WINDOW w AS (PARTITION BY p.pool_id, p.timeframe);
+                SELECT DISTINCT ON (p.pool_id, p.timeframe)
+                    p.pool_id,
+                    SUM(p.fee) OVER w,
+                    p.timeframe
+                FROM fee_prepare(duration) AS p
+                WINDOW w AS (PARTITION BY p.pool_id, p.timeframe);
             END; $$ 
             LANGUAGE plpgsql;
         `)
@@ -783,11 +779,11 @@ module.exports = class Data1700000000000 {
             RETURNS NUMERIC AS $$
             BEGIN RETURN
                 CASE
-                WHEN (previousAmount = 0 OR previousAmount IS NULL) AND currentAmount = 0 
-                    THEN 0
-                WHEN (previousAmount = 0 OR previousAmount IS NULL)
-                    THEN 100
-                ELSE (currentAmount - previousAmount) / previousAmount * 100
+                    WHEN (previousAmount = 0 OR previousAmount IS NULL) AND currentAmount = 0 
+                        THEN 0
+                    WHEN (previousAmount = 0 OR previousAmount IS NULL)
+                        THEN 100
+                    ELSE (currentAmount - previousAmount) / previousAmount * 100
                 END;
             END; $$ 
             LANGUAGE plpgsql;
