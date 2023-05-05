@@ -1,8 +1,7 @@
 import "reflect-metadata";
 import { Arg, Field, Int, ObjectType, Query, Resolver } from 'type-graphql';
-import { BigInteger, BigDecimalScalar, DateTime } from '@subsquid/graphql-server';
+import { BigInteger, DateTime } from '@subsquid/graphql-server';
 import type { EntityManager } from 'typeorm'
-import BigNumber from 'bignumber.js';
 import { PoolListsResolver } from "./poolLists";
 
 @ObjectType()
@@ -78,81 +77,7 @@ export class VolumeObject {
 }
 
 @ObjectType()
-export class CandlestickObject {
-  @Field(() => BigDecimalScalar, { nullable: true })
-  close!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  high!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  open!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  low!: BigNumber;
-
-  @Field(() => DateTime, { nullable: true })
-  timeframe!: Date;
-
-  constructor(props: Partial<CandlestickObject>) {
-    Object.assign(this, props);
-  }
-}
-
-@ObjectType()
-export class PoolCandlestickObject {
-  @Field(() => String, { nullable: true })
-  poolId!: string;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  close1!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  close2!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  high1!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  high2!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  open1!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  open2!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  low1!: BigNumber;
-
-  @Field(() => BigDecimalScalar, { nullable: true })
-  low2!: BigNumber;
-
-  @Field(() => Int, { nullable: true })
-  whichToken!: number;
-
-  @Field(() => String, { nullable: true })
-  token1!: string;
-
-  @Field(() => String, { nullable: true })
-  token2!: string;
-
-  @Field(() => DateTime, { nullable: true })
-  timeframe!: Date;
-
-  constructor(props: Partial<PoolCandlestickObject>) {
-    Object.assign(this, props);
-  }
-}
-
-@ObjectType()
 export class PoolData {
-  @Field(() => [CandlestickObject], { nullable: false })
-  candlestick1!: CandlestickObject[];
-
-  @Field(() => [CandlestickObject], { nullable: false })
-  candlestick2!: CandlestickObject[];
-
   @Field(() => [FeeObject], { nullable: false })
   fee!: FeeObject[];
 
@@ -164,12 +89,6 @@ export class PoolData {
 
   @Field(() => ReservesObject, { nullable: false })
   previousReserves!: ReservesObject;
-
-  @Field(() => CandlestickObject, { nullable: false })
-  previousCandlestick1!: CandlestickObject;
-
-  @Field(() => CandlestickObject, { nullable: false })
-  previousCandlestick2!: CandlestickObject;
 
   constructor(props: Partial<PoolData>) {
     Object.assign(this, props);
@@ -366,38 +285,6 @@ export class PoolResolver {
   ): Promise<PoolData> {
     const manager = await this.tx();
 
-    const queryCandlestick1 = `
-      SELECT DISTINCT ON (timeframe) close1, high1, open1, low1, timeframe
-      FROM pool_{time}_candlestick
-      WHERE which_token = 1 AND pool_id = $1 AND timeframe >= $2
-    `;
-    let resultCandlestick1 = await manager.query(queryCandlestick1.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultCandlestick1 = resultCandlestick1.map((row: any) => {
-      return new CandlestickObject({
-        close: row.close1,
-        high: row.high1,
-        open: row.open1,
-        low: row.low1,
-        timeframe: row.timeframe,
-      });
-    });
-
-    const queryCandlestick2 = `
-      SELECT DISTINCT ON (timeframe) close2, high2, open2, low2, timeframe
-      FROM pool_{time}_candlestick
-      WHERE which_token = 2 AND pool_id = $1 AND timeframe >= $2
-    `;
-    let resultCandlestick2 = await manager.query(queryCandlestick2.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultCandlestick2 = resultCandlestick2.map((row: any) => {
-      return new CandlestickObject({
-        close: row.close2,
-        high: row.high2,
-        open: row.open2,
-        low: row.low2,
-        timeframe: row.timeframe,
-      });
-    });
-
     const queryFee = `
       SELECT DISTINCT ON (timeframe) fee1, fee2, timeframe
       FROM pool_{time}_fee
@@ -456,43 +343,11 @@ export class PoolResolver {
       });
     });
 
-    const queryPreviousCandlestick1 = `
-      SELECT close1
-      FROM pool_{time}_candlestick
-      WHERE which_token = 1 AND pool_id = $1 AND timeframe < $2
-      ORDER BY timeframe DESC
-      LIMIT 1
-    `;
-    let resultPreviousCandlestick1 = await manager.query(queryPreviousCandlestick1.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultPreviousCandlestick1 = resultPreviousCandlestick1.map((row: any) => {
-      return new CandlestickObject({
-        close: row.close1,
-      });
-    });
-
-    const queryPreviousCandlestick2 = `
-      SELECT close2
-      FROM pool_{time}_candlestick
-      WHERE which_token = 2 AND pool_id = $1 AND timeframe < $2
-      ORDER BY timeframe DESC
-      LIMIT 1
-    `;
-    let resultPreviousCandlestick2 = await manager.query(queryPreviousCandlestick2.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultPreviousCandlestick2 = resultPreviousCandlestick2.map((row: any) => {
-      return new CandlestickObject({
-        close: row.close2,
-      });
-    });
-
     const result = new PoolData({
-      candlestick1: resultCandlestick1,
-      candlestick2: resultCandlestick2,
       fee: resultFee,
       volume: resultVolume,
       reserves: resultReserves,
       previousReserves: resultPreviousReserves[0] || {},
-      previousCandlestick1: resultPreviousCandlestick1[0] || {},
-      previousCandlestick2: resultPreviousCandlestick2[0] || {},
     });
 
     return result;
@@ -639,51 +494,6 @@ export class PoolResolver {
     });
 
     return result;    
-  }
-
-  @Query(() => [PoolCandlestickObject])
-  async poolLastCandlestick(
-    @Arg('address') address: string,
-    @Arg('whichToken') whichToken: number,
-    @Arg('fromTime') fromTime: string,
-  ): Promise<PoolCandlestickObject[]> {
-    const manager = await this.tx();
-
-    const query = `
-      SELECT DISTINCT ON (timeframe) pool_id, timeframe, close1, close2, high1, high2, low1, low2,
-        open1, open2, which_token, pool.token1, pool.token2
-      FROM pool_day_candlestick AS pc
-        INNER JOIN pool ON pc.pool_id = pool.id
-      WHERE pool.id = $1 AND which_token = $2 AND timeframe <= $3
-      ORDER BY timeframe DESC
-      LIMIT 1;
-    `;
-    const resultQuery = await manager.query(query, [address, whichToken, fromTime]);
-    
-    return resultQuery;
-  }
-
-  @Query(() => [PoolCandlestickObject])
-  async poolTimeCandlestick(
-    @Arg('address') address: string,
-    @Arg('whichToken') whichToken: number,
-    @Arg('fromTime') fromTime: string,
-    @Arg('time') time: string,
-  ): Promise<PoolCandlestickObject[]> {
-    const manager = await this.tx();
-
-    const query = `
-      SELECT DISTINCT ON (timeframe) pool_id, timeframe, close1, close2, high1, high2, low1, low2,
-        open1, open2, which_token, pool.token1, pool.token2
-      FROM pool_{time}_candlestick AS pc
-        INNER JOIN pool ON pc.pool_id = pool.id
-      WHERE pool.id = $1 AND which_token = $2 AND timeframe >= $3
-      ORDER BY timeframe ASC
-      LIMIT 1;
-    `;
-    const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, whichToken, fromTime]);
-    
-    return resultQuery;
   }
 
   @Query(() => [PoolFeeObject])

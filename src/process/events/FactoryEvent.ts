@@ -1,6 +1,5 @@
 import { EventRaw } from '../../interfaces/interfaces';
 import { ctx } from '../../processor';
-import TokenPrices from '../historyModules/TokenPrices';
 import PoolEventBase from './PoolEventBase';
 import * as erc20 from "../../abi/ERC20";
 import * as factory from "../../abi/ReefswapV2Factory";
@@ -63,9 +62,6 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     }
 
     this.blockHeight = blockHeight;
-
-    // Add new pool in TokenPrices
-    TokenPrices.addPool(tokenAddress1, tokenAddress2);
   }
 
   async save(): Promise<void> {

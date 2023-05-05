@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap
-version: 1
+version: 2
 description: |-
   Reef Swap data
 
@@ -34,7 +34,6 @@ deploy:
 scale:
  addons:
    postgres:
-     storage: 200Gi
      profile: large
 
 #deploy:

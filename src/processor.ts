@@ -7,7 +7,6 @@ import {
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
 import * as ReefswapV2Factory from "./abi/ReefswapV2Factory";
 import * as ReefswapV2Pair from "./abi/ReefswapV2Pair";
-import MarketHistory from "./process/historyModules";
 import { EventRaw } from "./interfaces/interfaces";
 import FactoryEvent from "./process/events/FactoryEvent";
 import { PairEvent } from "./process/events/PoolEvent";
@@ -68,7 +67,6 @@ processor.run(database, async (ctx_) => {
 
   if (isFirstBatch) {
     // Initialize token prices on previous block
-    await MarketHistory.init(currentBlock - 1);
     FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
 
     isFirstBatch = false;
@@ -111,9 +109,6 @@ processor.run(database, async (ctx_) => {
       }
     }
     ctx.log.info(`Block ${block.header.height} processed`);
-
-    // Update token prices and insert new values
-    await MarketHistory.save(block.header);
   }
 });
 

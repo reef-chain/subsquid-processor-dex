@@ -1,6 +1,5 @@
 import { utils } from 'ethers';
 import { PoolType } from '../../model';
-import Volume from '../historyModules/Volume';
 import PoolEvent, { PoolEventData } from './PoolEvent';
 
 class SwapEvent extends PoolEvent {
@@ -18,8 +17,6 @@ class SwapEvent extends PoolEvent {
     this.amount1 = amo1.toString() as string;
     this.amount2 = amo2.toString() as string;
     this.toAddress = to;
-
-    await Volume.updateVolume(this.poolId, this.amount1, this.amount2);
   }
 }
 
