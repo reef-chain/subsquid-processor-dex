@@ -2,8 +2,9 @@ import axios from "axios";
 import { Pool } from "../../model";
 import { ctx } from "../../processor";
 import ReefswapV2PairSource from "../../util/ReefswapV2PairSource";
+import { REEF_CONTRACT_ADDRESS } from "../../util/util";
 
-const verificationApi = axios.create({ baseURL: `${process.env.VERIFICATION_API_URL}/api/verificator/submit-verification` });
+const verificationApi = axios.create({ baseURL: `${process.env.VERIFICATION_API_URL}/api/verificator` });
 
 export const verifyAll = async() => {
   const unverifiedPools = await ctx.store.find(Pool, {
@@ -17,7 +18,7 @@ export const verifyAll = async() => {
 
 export const verifyPool = async (pool: Pool, blockHeight: number) => {
   try {
-    const res = await verificationApi.post('/', {
+    const res = await verificationApi.post('/submit-verification', {
       name: 'ReefswapV2Pair',
       runs: 999999,
       source: ReefswapV2PairSource,
@@ -49,3 +50,18 @@ export const verifyPool = async (pool: Pool, blockHeight: number) => {
   }
 };
 
+export const isApprovedContract = async (address: string) => {
+  if (address === REEF_CONTRACT_ADDRESS) return true;
+
+  try {
+    const res = await verificationApi.get(`/contract/${address}`);
+    if (res?.data?.approved === true) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e: any) {
+    ctx.log.error(`Error checking if contract ${address} is approved: ${e?.response?.data?.error || e?.response?.data || e}`)
+    return false;
+  }
+};

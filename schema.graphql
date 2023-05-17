@@ -11,6 +11,8 @@ type Pool @entity {
   name2: String!
   symbol1: String!
   symbol2: String!
+  approved1: Boolean
+  approved2: Boolean
   verified: Boolean! @index
 }
 
