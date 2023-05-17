@@ -45,6 +45,12 @@ export class Pool {
     @Column_("text", {nullable: false})
     symbol2!: string
 
+    @Column_("bool", {nullable: true})
+    approved1!: boolean | undefined | null
+
+    @Column_("bool", {nullable: true})
+    approved2!: boolean | undefined | null
+
     @Index_()
     @Column_("bool", {nullable: false})
     verified!: boolean

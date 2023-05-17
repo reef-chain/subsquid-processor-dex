@@ -4,7 +4,7 @@ import PoolEventBase from './PoolEventBase';
 import * as erc20 from "../../abi/ERC20";
 import * as factory from "../../abi/ReefswapV2Factory";
 import { Pool } from '../../model';
-import { verifyPool } from './poolVerification';
+import { isApprovedContract, verifyPool } from './poolVerification';
 
 class FactoryEvent extends PoolEventBase<EventRaw> {
   static verify = false;
@@ -17,6 +17,8 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
   name2?: string;
   symbol1?: string;
   symbol2?: string;
+  approved1?: boolean;
+  approved2?: boolean;
   blockHeight?: number;
 
   async process(eventRaw: EventRaw, blockHeight: number): Promise<void> {
@@ -62,6 +64,9 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
     }
 
     this.blockHeight = blockHeight;
+
+    this.approved1 = await isApprovedContract(tokenAddress1);
+    this.approved2 = await isApprovedContract(tokenAddress2);
   }
 
   async save(): Promise<void> {
@@ -84,6 +89,8 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
       symbol1: this.symbol1,
       symbol2: this.symbol2,
       verified: false,
+      approved1: this.approved1,
+      approved2: this.approved2,
     });
     await ctx.store.save(pool);
 
