@@ -361,7 +361,7 @@ export class PoolResolver {
       SELECT pe.reserved1, pe.reserved2, pe.timestamp as timeframe
       FROM pool_event pe
       WHERE pe.type = 'Sync' AND pe.pool_id = $1 AND pe.timestamp >= $2
-      ORDER BY timeframe DESC
+      ORDER BY timeframe ASC
     `;
     const resultAllReserves = await manager.query(queryAllReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
 
