@@ -91,6 +91,9 @@ export class PoolData {
   @Field(() => ReservesObject, { nullable: false })
   previousReserves!: ReservesObject;
 
+  @Field(() => [ReservesObject], { nullable: false })
+  allReserves!: ReservesObject[];
+
   constructor(props: Partial<PoolData>) {
     Object.assign(this, props);
   }
@@ -219,6 +222,30 @@ export class PoolSupplyObject {
   }
 }
 
+@ObjectType()
+export class PoolPositionObject {
+  @Field(() => String, { nullable: false })
+  address!: string;
+
+  @Field(() => Int, { nullable: false })
+  decimals!: number;
+
+  @Field(() => BigInteger, { nullable: false })
+  reserved1!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  reserved2!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  totalSupply!: bigint;
+
+  @Field(() => BigInteger, { nullable: false })
+  userSupply!: bigint;
+
+  constructor(props: Partial<PoolPositionObject>) {
+    Object.assign(this, props);
+  }
+}
 
 @Resolver()
 export class PoolResolver {
@@ -319,14 +346,7 @@ export class PoolResolver {
       FROM pool_{time}_locked
       WHERE pool_id = $1 AND timeframe >= $2
     `;
-    let resultReserves = await manager.query(queryReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultReserves = resultReserves.map((row: any) => {
-      return new ReservesObject({
-        reserved1: row.reserved1,
-        reserved2: row.reserved2,
-        timeframe: row.timeframe,
-      });
-    });
+    const resultReserves = await manager.query(queryReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
 
     const queryPreviousReserves = `
       SELECT reserved1, reserved2, timeframe
@@ -335,20 +355,22 @@ export class PoolResolver {
       ORDER BY timeframe DESC
       LIMIT 1
     `;
-    let resultPreviousReserves = await manager.query(queryPreviousReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
-    resultPreviousReserves = resultPreviousReserves.map((row: any) => {
-      return new ReservesObject({
-        reserved1: row.reserved1,
-        reserved2: row.reserved2,
-        timeframe: row.timeframe,
-      });
-    });
+    const resultPreviousReserves = await manager.query(queryPreviousReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
+
+    const queryAllReserves = `
+      SELECT pe.reserved1, pe.reserved2, pe.timestamp as timeframe
+      FROM pool_event pe
+      WHERE pe.type = 'Sync' AND pe.pool_id = $1 AND pe.timestamp >= $2
+      ORDER BY timeframe ASC
+    `;
+    const resultAllReserves = await manager.query(queryAllReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
 
     const result = new PoolData({
       fee: resultFee,
       volume: resultVolume,
       reserves: resultReserves,
       previousReserves: resultPreviousReserves[0] || {},
+      allReserves: resultAllReserves,
     });
 
     return result;
@@ -489,7 +511,7 @@ export class PoolResolver {
     `;
     const resultQuery = await manager.query(query, [address, fromTime]);
     
-    const result =  new PoolFeeObject({
+    const result = new PoolFeeObject({
       fee1: resultQuery[0].sum_fee1 || 0n,
       fee2: resultQuery[0].sum_fee2 || 0n
     });
@@ -533,6 +555,70 @@ export class PoolResolver {
     const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, fromTime]);
 
     return resultQuery;
+  }
+
+  @Query(() => PoolPositionObject)
+  async userPoolSupply(
+    @Arg('token1') token1: string,
+    @Arg('token2') token2: string,
+    @Arg('signerAddress') signerAddress: string,
+  ): Promise<PoolPositionObject> {
+    const manager = await this.tx();
+
+    const swapOrder = token1 > token2;
+    const [firstToken, secondToken] = swapOrder ? [token2, token1] : [token1, token2];
+    
+    const queryPool = `
+      SELECT id, pool_decimal
+      FROM pool
+      WHERE token1 = $1 AND token2 = $2
+      LIMIT 1
+    `;
+    const resultPool = await manager.query(queryPool, [firstToken, secondToken]);
+    if (!resultPool.length) {
+      return new PoolPositionObject({
+        address: '0x0000000000000000000000000000000000000000',
+        decimals: 0,
+        reserved1: 0n,
+        reserved2: 0n,
+        totalSupply: 0n,
+        userSupply: 0n,
+      });
+    }
+
+    const queryReserves = `
+      SELECT reserved1, reserved2
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Sync'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `;
+    const resultReserves = await manager.query(queryReserves, [resultPool[0].id]);
+
+    const queryTotalSupply = `
+      SELECT total_supply
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Transfer'
+      ORDER BY timestamp DESC
+      LIMIT 1
+    `;
+    let resultTotalSupply = await manager.query(queryTotalSupply, [resultPool[0].id]);
+
+    const queryUserSupply = `
+      SELECT SUM(supply) AS supply
+      FROM pool_event
+      WHERE pool_id = $1 AND type = 'Transfer' AND signer_address = $2
+    `;
+    const resultUserSupply = await manager.query(queryUserSupply, [resultPool[0].id, signerAddress]);
+
+    return new PoolPositionObject({
+      address: resultPool[0].id,
+      decimals: resultPool[0].pool_decimal,
+      reserved1: swapOrder ? resultReserves[0].reserved2 : resultReserves[0].reserved1,
+      reserved2: swapOrder ? resultReserves[0].reserved1 : resultReserves[0].reserved2,
+      totalSupply: resultTotalSupply[0]?.total_supply || 0n,
+      userSupply: resultUserSupply[0]?.supply || 0n,
+    });
   }
 }
 

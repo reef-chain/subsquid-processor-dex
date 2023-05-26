@@ -174,14 +174,18 @@ module.exports = class Data1700000000000 {
             )
             AS $$
             BEGIN RETURN QUERY
-                SELECT
-                    pe.timestamp,
-                    date_trunc(duration, pe.timestamp),
-                    pe.pool_id,
-                    pe.reserved1,
-                    pe.reserved2
-                FROM pool_event as pe
-                WHERE pe.type = 'Sync';
+                SELECT t.timestamp, t.truncated_timestamp, t.pool_id, t.reserved1, t.reserved2
+                    FROM (
+                        SELECT 
+                            timestamp, DATE_TRUNC(duration, pe.timestamp) as truncated_timestamp,
+                            MAX(pe.timestamp) OVER (PARTITION BY DATE_TRUNC(duration, pe.timestamp)) as max_timestamp,
+                            pe.pool_id,
+                            pe.reserved1,
+                            pe.reserved2
+                        FROM pool_event as pe
+                        WHERE pe.type = 'Sync'
+                    ) t
+                WHERE t.timestamp = t.max_timestamp;
             end; $$
             LANGUAGE plpgsql;
         `)
@@ -197,20 +201,9 @@ module.exports = class Data1700000000000 {
             )
             AS $$
             BEGIN RETURN QUERY
-                SELECT
-                    p.pool_id,
-                    max_p.timeframe,
-                    p.reserved1,
-                    p.reserved2
-                FROM 
-                    pool_prepare_locked_data(duration) as p
-                    INNER JOIN (
-                        SELECT p2.pool_id, MAX(p2.timeframe) AS timeframe
-                        FROM pool_prepare_locked_data(duration) as p2
-                        GROUP BY p2.pool_id
-                    ) AS max_p
-                    ON p.pool_id = max_p.pool_id AND p.timeframe = max_p.timeframe
-                ORDER BY p.pool_id;
+                SELECT p.pool_id, p.timeframe, p.reserved1, p.reserved2
+                FROM pool_prepare_locked_data(duration) as p
+                ORDER BY p.timeframe;
             end; $$
             LANGUAGE plpgsql;
         `)

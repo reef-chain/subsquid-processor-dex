@@ -150,7 +150,7 @@ export class PoolListsResolver {
 
     @Query(() => [VerifiedPoolsWithUserLP])
     async allPoolsList(
-        @Arg('signer') signer: string,
+        @Arg('signerAddress') signerAddress: string,
         @Arg('limit') limit: number,
         @Arg('offset') offset: number,
         @Arg('search') search: string,
@@ -163,16 +163,37 @@ export class PoolListsResolver {
             .replace('{SEARCH}', search.trim() != "" ? ADDITIONAL_SEARCH : '')
             .replace('{PAGINATION}', PAGINATION);
 
-        const result = await manager.query(
+        const queryResult = await manager.query(
             query, 
-            search.trim() != "" ? [signer, limit, offset, `${search}%`] : [signer, limit, offset]
+            search.trim() != "" ? [signerAddress, limit, offset, `${search}%`] : [signerAddress, limit, offset]
         );
-        return result;  
+        const result = queryResult.map((row: any) => {
+          return new VerifiedPoolsWithUserLP({
+              id: row.id,
+              token1: row.token1,
+              token2: row.token2,
+              reserved1: row.reserved1,
+              reserved2: row.reserved2,
+              decimal1: row.decimal1,
+              decimal2: row.decimal2,
+              symbol1: row.symbol1,
+              symbol2: row.symbol2,
+              name1: row.name1,
+              name2: row.name2,
+              dayVolume1: row.day_volume1,
+              dayVolume2: row.day_volume2,
+              prevDayVolume1: row.prev_day_volume1,
+              prevDayVolume2: row.prev_day_volume2,
+              userLockedAmount1: row.user_locked_amount1,
+              userLockedAmount2: row.user_locked_amount2,
+          });
+        });
+        return result;
     }
   
     @Query(() => Number)
     async allPoolsListCount(
-        @Arg('signer') signer: string,
+        @Arg('signerAddress') signerAddress: string,
         @Arg('search') search: string,
     ): Promise<number> {
         const manager = await this.tx();
@@ -185,14 +206,14 @@ export class PoolListsResolver {
 
         const result = await manager.query(
             query, 
-            search.trim() != "" ? [signer, `${search}%`] : [signer]
+            search.trim() != "" ? [signerAddress, `${search}%`] : [signerAddress]
         );
         return result[0].count;
     }
     
     @Query(() => [VerifiedPoolsWithUserLP])
     async userPoolsList(
-        @Arg('signer') signer: string,
+        @Arg('signerAddress') signerAddress: string,
         @Arg('limit') limit: number,
         @Arg('offset') offset: number,
         @Arg('search') search: string,
@@ -205,16 +226,37 @@ export class PoolListsResolver {
             .replace('{SEARCH}', search ? ADDITIONAL_SEARCH : '')
             .replace('{PAGINATION}', PAGINATION);
 
-        const result = await manager.query(
+        const queryResult = await manager.query(
             query,
-            search.trim() != "" ? [signer, limit, offset, `${search}%`] : [signer, limit, offset]
+            search.trim() != "" ? [signerAddress, limit, offset, `${search}%`] : [signerAddress, limit, offset]
         );
-        return result;  
+        const result = queryResult.map((row: any) => {
+          return new VerifiedPoolsWithUserLP({
+              id: row.id,
+              token1: row.token1,
+              token2: row.token2,
+              reserved1: row.reserved1,
+              reserved2: row.reserved2,
+              decimal1: row.decimal1,
+              decimal2: row.decimal2,
+              symbol1: row.symbol1,
+              symbol2: row.symbol2,
+              name1: row.name1,
+              name2: row.name2,
+              dayVolume1: row.day_volume1,
+              dayVolume2: row.day_volume2,
+              prevDayVolume1: row.prev_day_volume1,
+              prevDayVolume2: row.prev_day_volume2,
+              userLockedAmount1: row.user_locked_amount1,
+              userLockedAmount2: row.user_locked_amount2,
+          });
+        });
+        return result;
     }
   
     @Query(() => Number)
     async userPoolsListCount(
-        @Arg('signer') signer: string,
+        @Arg('signerAddress') signerAddress: string,
         @Arg('search') search: string,
     ): Promise<number> {
         const manager = await this.tx();
@@ -227,7 +269,7 @@ export class PoolListsResolver {
 
         const result = await manager.query(
             query, 
-            search.trim() != "" ? [signer, `${search}%`] : [signer]
+            search.trim() != "" ? [signerAddress, `${search}%`] : [signerAddress]
         );
         return result[0].count;
     }
