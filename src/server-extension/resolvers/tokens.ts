@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { Arg, Mutation, Resolver } from 'type-graphql';
 import type { EntityManager } from 'typeorm'
-import { Pool } from "../../model";
+import { Token } from "../../model";
 
 @Resolver()
 export class TokensResolver {
@@ -13,10 +13,7 @@ export class TokensResolver {
         @Arg('approved') approved: boolean,
     ): Promise<Boolean> {
         const manager = await this.tx();
-
-        await manager.update(Pool, {token1: id}, { approved1: approved });
-        await manager.update(Pool, {token2: id}, { approved2: approved });
-
+        await manager.update(Token, { id }, { approved });
         return true;  
     }
 }

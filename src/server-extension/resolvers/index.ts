@@ -85,9 +85,6 @@ export class PoolData {
   @Field(() => [VolumeObject], { nullable: false })
   volume!: VolumeObject[];
 
-  @Field(() => [ReservesObject], { nullable: false })
-  reserves!: ReservesObject[];
-
   @Field(() => ReservesObject, { nullable: false })
   previousReserves!: ReservesObject;
 
@@ -158,10 +155,10 @@ export class PoolEventObject {
   reserved2!: bigint;
 
   @Field(() => Int, { nullable: false })
-  decimal1!: number;
+  decimals1!: number;
 
   @Field(() => Int, { nullable: false })
-  decimal2!: number;
+  decimals2!: number;
 
   @Field(() => String, { nullable: false })
   symbol1!: string;
@@ -174,6 +171,12 @@ export class PoolEventObject {
 
   @Field(() => String, { nullable: false })
   name2!: string;
+
+  @Field(() => String, { nullable: false })
+  iconUrl1!: string;
+
+  @Field(() => String, { nullable: false })
+  iconUrl2!: string;
 
   constructor(props: Partial<PoolEventObject>) {
     Object.assign(this, props);
@@ -256,7 +259,7 @@ export class PoolResolver {
     const manager = await this.tx();
 
     const query = `
-      SELECT DISTINCT ON (pool_id) pool.id, pool.token1, pool.token2, pool_event.reserved1, pool_event.reserved2
+      SELECT DISTINCT ON (pool_id) pool.id, pool.token1_id as token1, pool.token2_id as token2, pool_event.reserved1, pool_event.reserved2
       FROM pool_event
       INNER JOIN pool ON pool_event.pool_id = pool.id
       WHERE pool_event.type = 'Sync' AND pool_event.timestamp < $1
@@ -283,7 +286,7 @@ export class PoolResolver {
     const manager = await this.tx();
 
     const query = `
-      SELECT DISTINCT ON (pool_id, timeframe) pool.id, pool.token1, pool.token2, pool_hour_volume.amount1, pool_hour_volume.amount2
+      SELECT DISTINCT ON (pool_id, timeframe) pool.id, pool.token1_id as token1, pool.token2_id as token2, pool_hour_volume.amount1, pool_hour_volume.amount2
       FROM pool_hour_volume
       INNER JOIN pool ON pool_hour_volume.pool_id = pool.id
       WHERE pool_hour_volume.timeframe >= $1
@@ -341,17 +344,10 @@ export class PoolResolver {
       });
     });
 
-    const queryReserves = `
-      SELECT DISTINCT ON (timeframe) reserved1, reserved2, timeframe
-      FROM pool_{time}_locked
-      WHERE pool_id = $1 AND timeframe >= $2
-    `;
-    const resultReserves = await manager.query(queryReserves.replace('{time}', time.toLowerCase()), [address, fromTime]);
-
     const queryPreviousReserves = `
-      SELECT reserved1, reserved2, timeframe
-      FROM pool_{time}_locked
-      WHERE pool_id = $1 AND timeframe < $2
+      SELECT pe.reserved1, pe.reserved2, pe.timestamp as timeframe
+      FROM pool_event pe
+      WHERE pe.type = 'Sync' AND pe.pool_id = $1 AND pe.timestamp < $2
       ORDER BY timeframe DESC
       LIMIT 1
     `;
@@ -368,7 +364,6 @@ export class PoolResolver {
     const result = new PoolData({
       fee: resultFee,
       volume: resultVolume,
-      reserves: resultReserves,
       previousReserves: resultPreviousReserves[0] || {},
       allReserves: resultAllReserves,
     });
@@ -463,14 +458,24 @@ export class PoolResolver {
     const manager = await this.tx();
 
     const query = `
-      SELECT DISTINCT ON (pool_id) reserved1, reserved2, p.id as address,
-        p.token1, p.token2, p.decimal1, p.decimal2, p.symbol1, p.symbol2, p.name1, p.name2
+      SELECT DISTINCT ON (pool_id) reserved1, reserved2, p.id as address, t1.id as token1, t2.id as token2, 
+        t1.decimals as decimals1, t2.decimals as decimals2, t1.symbol as symbol1, t2.symbol as symbol2, 
+        t1.name as name1, t2.name as name2, t1.icon_url as icon_url1, t2.icon_url as icon_url2
       FROM pool_event AS pe
       JOIN pool AS p ON pe.pool_id = p.id
+      JOIN token AS t1 ON p.token1_id = t1.id
+      JOIN token AS t2 ON p.token2_id = t2.id
       WHERE pe.type = 'Sync'
       ORDER BY pool_id ASC, timestamp DESC
     `;
-    const result = await manager.query(query);
+    let result = await manager.query(query);
+    result = result.map((row: any) => {
+      return new PoolEventObject({
+        ...row,
+        iconUrl1: row.icon_url1,
+        iconUrl2: row.icon_url2,
+      });
+    });
     return result;
   }
 
@@ -552,7 +557,13 @@ export class PoolResolver {
       WHERE pool_id = $1 AND timeframe >= $2
       ORDER BY timeframe ASC;
     `;
-    const resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, fromTime]);
+    let resultQuery = await manager.query(query.replace('{time}', time.toLowerCase()), [address, fromTime]);
+    resultQuery = resultQuery.map((row: any) => {
+      return new PoolSupplyObject({
+        totalSupply: row.total_supply,
+        timeframe: row.timeframe,
+      });
+    });
 
     return resultQuery;
   }
@@ -569,9 +580,9 @@ export class PoolResolver {
     const [firstToken, secondToken] = swapOrder ? [token2, token1] : [token1, token2];
     
     const queryPool = `
-      SELECT id, pool_decimal
+      SELECT id, decimals
       FROM pool
-      WHERE token1 = $1 AND token2 = $2
+      WHERE token1_id = $1 AND token2_id = $2
       LIMIT 1
     `;
     const resultPool = await manager.query(queryPool, [firstToken, secondToken]);
@@ -613,7 +624,7 @@ export class PoolResolver {
 
     return new PoolPositionObject({
       address: resultPool[0].id,
-      decimals: resultPool[0].pool_decimal,
+      decimals: resultPool[0].decimals,
       reserved1: swapOrder ? resultReserves[0].reserved2 : resultReserves[0].reserved1,
       reserved2: swapOrder ? resultReserves[0].reserved1 : resultReserves[0].reserved2,
       totalSupply: resultTotalSupply[0]?.total_supply || 0n,
