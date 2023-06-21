@@ -38,6 +38,9 @@ export const functions = {
     symbol: new Func<[], {}, string>(
         abi, '0x95d89b41'
     ),
+    iconUri: new Func<[], {}, string>(
+        abi, '0x31037634'
+    ),
     totalSupply: new Func<[], {}, ethers.BigNumber>(
         abi, '0x18160ddd'
     ),
@@ -69,6 +72,10 @@ export class Contract extends ContractBase {
 
     symbol(): Promise<string> {
         return this.eth_call(functions.symbol, [])
+    }
+
+    iconUri(): Promise<string> {
+        return this.eth_call(functions.iconUri, [])
     }
 
     totalSupply(): Promise<ethers.BigNumber> {

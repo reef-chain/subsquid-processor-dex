@@ -187,6 +187,19 @@ export const ABI_JSON = [
     },
     {
         "type": "function",
+        "name": "iconUri",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+            {
+                "type": "string"
+            }
+        ]
+    },
+    {
+        "type": "function",
         "name": "totalSupply",
         "constant": true,
         "stateMutability": "view",
