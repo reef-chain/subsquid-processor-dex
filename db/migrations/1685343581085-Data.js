@@ -1,11 +1,12 @@
-module.exports = class Data1683273930807 {
-    name = 'Data1683273930807'
+module.exports = class Data1685343581085 {
+    name = 'Data1685343581085'
 
     async up(db) {
-        await db.query(`CREATE TABLE "pool" ("id" character varying NOT NULL, "evm_event_id" text, "token1" text NOT NULL, "token2" text NOT NULL, "pool_decimal" integer NOT NULL, "decimal1" integer NOT NULL, "decimal2" integer NOT NULL, "name1" text NOT NULL, "name2" text NOT NULL, "symbol1" text NOT NULL, "symbol2" text NOT NULL, "verified" boolean NOT NULL, CONSTRAINT "PK_db1bfe411e1516c01120b85f8fe" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "token" ("id" character varying NOT NULL, "decimals" integer NOT NULL, "name" text NOT NULL, "symbol" text NOT NULL, "approved" boolean, "icon_url" text, CONSTRAINT "PK_82fae97f905930df5d62a702fc9" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "pool" ("id" character varying NOT NULL, "evm_event_id" text, "decimals" integer NOT NULL, "verified" boolean NOT NULL, "token1_id" character varying, "token2_id" character varying, CONSTRAINT "PK_db1bfe411e1516c01120b85f8fe" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_7aea0c4a65d50e1fad16589179" ON "pool" ("evm_event_id") `)
-        await db.query(`CREATE INDEX "IDX_d39ca709b11f93e38e867c1cec" ON "pool" ("token1") `)
-        await db.query(`CREATE INDEX "IDX_1241dca5be35855e64fbe17c6a" ON "pool" ("token2") `)
+        await db.query(`CREATE INDEX "IDX_479321eabdd500587fddd0ee88" ON "pool" ("token1_id") `)
+        await db.query(`CREATE INDEX "IDX_de6a1f9db928e14edad41c1d43" ON "pool" ("token2_id") `)
         await db.query(`CREATE INDEX "IDX_548fd369b1d644edd67cfbd25b" ON "pool" ("verified") `)
         await db.query(`CREATE TABLE "pool_event" ("id" character varying NOT NULL, "to_address" text, "sender_address" text, "signer_address" text, "block_height" integer NOT NULL, "index_in_block" integer NOT NULL, "type" character varying(8) NOT NULL, "amount1" numeric, "amount2" numeric, "amount_in1" numeric, "amount_in2" numeric, "reserved1" numeric, "reserved2" numeric, "supply" numeric, "total_supply" numeric, "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL, "pool_id" character varying, CONSTRAINT "PK_d84dbf06888f1aca5ee6501c700" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_eb1548c8a81dc16b4ae985e80d" ON "pool_event" ("pool_id") `)
@@ -23,14 +24,17 @@ module.exports = class Data1683273930807 {
         await db.query(`CREATE INDEX "IDX_e45816a69e416f141f9b4a8bfe" ON "pool_event" ("supply") `)
         await db.query(`CREATE INDEX "IDX_d47a81d57d778874dc4bea2e4b" ON "pool_event" ("total_supply") `)
         await db.query(`CREATE INDEX "IDX_dc2b5791a04113831e53dbd356" ON "pool_event" ("timestamp") `)
+        await db.query(`ALTER TABLE "pool" ADD CONSTRAINT "FK_479321eabdd500587fddd0ee88b" FOREIGN KEY ("token1_id") REFERENCES "token"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
+        await db.query(`ALTER TABLE "pool" ADD CONSTRAINT "FK_de6a1f9db928e14edad41c1d43f" FOREIGN KEY ("token2_id") REFERENCES "token"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "pool_event" ADD CONSTRAINT "FK_eb1548c8a81dc16b4ae985e80d4" FOREIGN KEY ("pool_id") REFERENCES "pool"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
     }
 
     async down(db) {
+        await db.query(`DROP TABLE "token"`)
         await db.query(`DROP TABLE "pool"`)
         await db.query(`DROP INDEX "public"."IDX_7aea0c4a65d50e1fad16589179"`)
-        await db.query(`DROP INDEX "public"."IDX_d39ca709b11f93e38e867c1cec"`)
-        await db.query(`DROP INDEX "public"."IDX_1241dca5be35855e64fbe17c6a"`)
+        await db.query(`DROP INDEX "public"."IDX_479321eabdd500587fddd0ee88"`)
+        await db.query(`DROP INDEX "public"."IDX_de6a1f9db928e14edad41c1d43"`)
         await db.query(`DROP INDEX "public"."IDX_548fd369b1d644edd67cfbd25b"`)
         await db.query(`DROP TABLE "pool_event"`)
         await db.query(`DROP INDEX "public"."IDX_eb1548c8a81dc16b4ae985e80d"`)
@@ -48,6 +52,8 @@ module.exports = class Data1683273930807 {
         await db.query(`DROP INDEX "public"."IDX_e45816a69e416f141f9b4a8bfe"`)
         await db.query(`DROP INDEX "public"."IDX_d47a81d57d778874dc4bea2e4b"`)
         await db.query(`DROP INDEX "public"."IDX_dc2b5791a04113831e53dbd356"`)
+        await db.query(`ALTER TABLE "pool" DROP CONSTRAINT "FK_479321eabdd500587fddd0ee88b"`)
+        await db.query(`ALTER TABLE "pool" DROP CONSTRAINT "FK_de6a1f9db928e14edad41c1d43f"`)
         await db.query(`ALTER TABLE "pool_event" DROP CONSTRAINT "FK_eb1548c8a81dc16b4ae985e80d4"`)
     }
 }

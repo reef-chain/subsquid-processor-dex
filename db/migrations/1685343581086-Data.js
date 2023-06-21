@@ -1,6 +1,6 @@
 // This migration adds additional views for pool data
-module.exports = class Data1700000000000 {
-    name = 'Data1700000000000'
+module.exports = class Data1685343581086 {
+    name = 'Data1685343581086'
 
     async up(db) {
         // Pool supply data
@@ -160,58 +160,6 @@ module.exports = class Data1700000000000 {
         await db.query(`CREATE VIEW pool_minute_fee AS SELECT * FROM pool_fee('minute')`)
         await db.query(`CREATE VIEW pool_hour_fee AS SELECT * FROM pool_fee('hour')`)
         await db.query(`CREATE VIEW pool_day_fee AS SELECT * FROM pool_fee('day')`)
-
-
-        // Pool locked data
-        await db.query(`
-            CREATE FUNCTION pool_prepare_locked_data (duration text)
-            RETURNS TABLE (
-                exact_time timestamptz,
-                timeframe timestamptz,
-                pool_id VARCHAR,
-                reserved1 numeric,
-                reserved2 numeric
-            )
-            AS $$
-            BEGIN RETURN QUERY
-                SELECT t.timestamp, t.truncated_timestamp, t.pool_id, t.reserved1, t.reserved2
-                    FROM (
-                        SELECT 
-                            timestamp, DATE_TRUNC(duration, pe.timestamp) as truncated_timestamp,
-                            MAX(pe.timestamp) OVER (PARTITION BY DATE_TRUNC(duration, pe.timestamp)) as max_timestamp,
-                            pe.pool_id,
-                            pe.reserved1,
-                            pe.reserved2
-                        FROM pool_event as pe
-                        WHERE pe.type = 'Sync'
-                    ) t
-                WHERE t.timestamp = t.max_timestamp;
-            end; $$
-            LANGUAGE plpgsql;
-        `)
-        await db.query(`
-            CREATE FUNCTION pool_locked(
-                duration text
-            )
-            RETURNS TABLE (
-                pool_id VARCHAR,
-                timeframe timestamptz,
-                reserved1 numeric,
-                reserved2 numeric
-            )
-            AS $$
-            BEGIN RETURN QUERY
-                SELECT p.pool_id, p.timeframe, p.reserved1, p.reserved2
-                FROM pool_prepare_locked_data(duration) as p
-                ORDER BY p.timeframe;
-            end; $$
-            LANGUAGE plpgsql;
-        `)
-
-        // Pool locked views
-        await db.query(`CREATE VIEW pool_minute_locked AS SELECT * FROM pool_locked('minute')`)
-        await db.query(`CREATE VIEW pool_hour_locked AS SELECT * FROM pool_locked('hour')`)
-        await db.query(`CREATE VIEW pool_day_locked AS SELECT * FROM pool_locked('day')`)
     }
 
     async down(db) {
@@ -230,10 +178,5 @@ module.exports = class Data1700000000000 {
         await db.query(`DROP VIEW pool_minute_fee`)
         await db.query(`DROP VIEW pool_hour_fee`)
         await db.query(`DROP VIEW pool_day_fee`)
-        await db.query(`DROP FUNCTION pool_prepare_locked_data`)
-        await db.query(`DROP FUNCTION pool_locked`)
-        await db.query(`DROP VIEW pool_minute_locked`)
-        await db.query(`DROP VIEW pool_hour_locked`)
-        await db.query(`DROP VIEW pool_day_locked`)
     }
 }

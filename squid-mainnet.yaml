@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap
-version: 3
+version: 4
 description: |-
   Reef Swap data
 
@@ -22,7 +22,7 @@ deploy:
       VERIFY_POOLS:
         true
       VERIFICATION_API_URL:
-        https://api.reefscan.com/
+        https://api.reefscan.com
       VERIFICATION_BATCH_INTERVAL:
         10000
       START_BLOCK:
@@ -32,39 +32,3 @@ deploy:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - ADMIN_KEY
-
-scale:
- addons:
-   postgres:
-     profile: large
-
-#deploy:
-#  addons:
-#    postgres:
-  # the set of secrets that must be set and provided by Aquarium
-#  secrets:
-#    - ACALA_RPC_ENDPOINT
-#    - COINGECKO_API_KEY
-#  processor:
-#    # additional env variables
-#    environment:
-#      SQD_DEBUG=sqd:mapping
-#    env:
-#      # env variables from a file
-#      - .deploy.env
-#    cmd: [ "node", "lib/processor" ]
-#  api:
-#    # custom run command for the GraphQL server
-#    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "10", "--sql-statement-timeout", "1000" ]
-
-#scale:
-#  addons:
-#    postgres:
-#      storage: 100Gi
-#      profile: medium
-#  processor:
-#    profile: medium
-#  api:
-#    profile: large
-#    # load-balance three replicas
-#    replicas: 3

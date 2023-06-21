@@ -1,18 +1,20 @@
+type Token @entity {
+  "Address"
+  id: ID!
+  decimals: Int!
+  name: String!
+  symbol: String!
+  approved: Boolean
+  iconUrl: String
+}
+
 type Pool @entity {
   "Address"
   id: ID!
   evmEventId: String @index
-  token1: String! @index
-  token2: String! @index
-  poolDecimal: Int!
-  decimal1: Int!
-  decimal2: Int!
-  name1: String!
-  name2: String!
-  symbol1: String!
-  symbol2: String!
-  approved1: Boolean
-  approved2: Boolean
+  token1: Token!
+  token2: Token!
+  decimals: Int!
   verified: Boolean! @index
 }
 

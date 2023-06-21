@@ -210,6 +210,21 @@
      "type":"function"
   },
   {
+   "inputs":[
+      
+      ],
+      "name":"iconUri",
+      "outputs":[
+         {
+            "internalType":"string",
+            "name":"",
+            "type":"string"
+         }
+      ],
+      "stateMutability":"view",
+      "type":"function"
+  },
+  {
      "inputs":[
         
      ],
