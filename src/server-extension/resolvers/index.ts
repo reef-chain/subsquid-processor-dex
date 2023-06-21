@@ -59,6 +59,25 @@ export class ReservesObject {
 }
 
 @ObjectType()
+export class ReservesSimpleObject {
+  @Field(() => String, { nullable: false })
+  token1!: string;
+
+  @Field(() => String, { nullable: false })
+  token2!: string;
+
+  @Field(() => BigInteger, { nullable: true })
+  reserved1!: bigint;
+
+  @Field(() => BigInteger, { nullable: true })
+  reserved2!: bigint;
+
+  constructor(props: Partial<ReservesSimpleObject>) {
+    Object.assign(this, props);
+  }
+}
+
+@ObjectType()
 export class VolumeObject {
   @Field(() => PoolObject, { nullable: true })
   pool!: PoolObject;
@@ -631,6 +650,33 @@ export class PoolResolver {
       userSupply: resultUserSupply[0]?.supply || 0n,
     });
   }
+
+  @Query(() => [ReservesSimpleObject])
+  async poolsReserves(
+    @Arg('tokens', () => [String]) tokens: string[]
+  ): Promise<ReservesSimpleObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT DISTINCT ON (pool_id) pool.id, pool.token1_id as token1, pool.token2_id as token2, pool_event.reserved1, pool_event.reserved2
+      FROM pool_event
+      INNER JOIN pool ON pool_event.pool_id = pool.id
+      WHERE pool_event.type = 'Sync' AND pool.token1_id = ANY($1::text[]) AND pool.token2_id = ANY($1::text[])
+      ORDER BY pool_id ASC, timestamp DESC;
+    `;
+    let result = await manager.query(query, [tokens]);
+    result = result.map((row: any) => {
+      return new ReservesSimpleObject({
+        token1: row.token1,
+        token2: row.token2,
+        reserved1: row.reserved1,
+        reserved2: row.reserved2,
+      });
+    });
+
+    return result;
+  }
+
 }
 
 export {
