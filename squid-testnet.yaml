@@ -18,7 +18,7 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        "0x06D7a7334B9329D0750FFd0a636D6C3dFA77E580"
+        "0x91e24d4E9CbF443E4D00E35edB61be763499533c"
       VERIFY_POOLS:
         true
       VERIFICATION_API_URL:

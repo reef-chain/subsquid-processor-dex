@@ -624,6 +624,8 @@ export class PoolResolver {
       LIMIT 1
     `;
     const resultReserves = await manager.query(queryReserves, [resultPool[0].id]);
+    const resultReserves1 = resultReserves.length ? resultReserves[0].reserved1: 0n;
+    const resultReserves2 = resultReserves.length ? resultReserves[0].reserved2: 0n; 
 
     const queryTotalSupply = `
       SELECT total_supply
@@ -644,8 +646,8 @@ export class PoolResolver {
     return new PoolPositionObject({
       address: resultPool[0].id,
       decimals: resultPool[0].decimals,
-      reserved1: swapOrder ? resultReserves[0].reserved2 : resultReserves[0].reserved1,
-      reserved2: swapOrder ? resultReserves[0].reserved1 : resultReserves[0].reserved2,
+      reserved1: swapOrder ? resultReserves2 : resultReserves1,
+      reserved2: swapOrder ? resultReserves1 : resultReserves2,
       totalSupply: resultTotalSupply[0]?.total_supply || 0n,
       userSupply: resultUserSupply[0]?.supply || 0n,
     });
