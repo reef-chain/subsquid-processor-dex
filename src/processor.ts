@@ -19,7 +19,8 @@ import SwapEvent from "./process/events/SwapEvent";
 import SyncEvent from "./process/events/SyncEvent";
 import TransferEvent from "./process/events/TransferEvent";
 import EmptyEvent from "./process/events/EmptyEvent";
-import { Pool } from "./model";
+import { Pool, PoolType } from "./model";
+import { PoolEvent as PoolEventModel } from './model';
 import { verifyAll } from "./process/events/poolVerification";
 
 const RPC_URL = process.env.NODE_RPC_WS;
@@ -90,6 +91,21 @@ processor.run(database, async (ctx_) => {
           // Add new pool in DB
           const factoryEvent = new FactoryEvent(eventRaw.id);
           await factoryEvent.combine(eventRaw, block.header);
+
+          // Create simulated initial sync event. This is needed to find pool reserves in queries.
+          const pool = await ctx.store.get(Pool, factoryEvent.poolAddress!);
+          if (!pool) throw new Error(`Pool with id ${factoryEvent.poolAddress!} not created`);
+          const initialSyncEvent = new PoolEventModel({
+            id: eventRaw.id,
+            pool,
+            blockHeight: block.header.height,
+            indexInBlock: 0,
+            type: PoolType.Sync,
+            reserved1: 0n,
+            reserved2: 0n,
+            timestamp: new Date(block.header.timestamp),
+          });
+          await ctx.store.save(initialSyncEvent);
         } else {
           const pool = await ctx.store.get(Pool, toChecksumAddress(eventRaw.args.address));
           if (pool) {

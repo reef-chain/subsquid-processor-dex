@@ -24,13 +24,13 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
   poolId: string;
   blockHeight: number;
   timestamp: Date;
+  indexInBlock: number;
   type: PoolType;
 
-  // Optional attributes for childe classes
+  // Optional attributes for child classes
   toAddress?: string;
   senderAddress?: string;
   signerAddress?: string;
-  indexInBlock?: number;
   amount1?: string;
   amount2?: string;
   amountIn1?: string;
@@ -46,7 +46,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     this.poolId = pairData.poolId;
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
-    this.indexInBlock = pairData.extrinsic?.indexInBlock;
+    this.indexInBlock = pairData.extrinsic?.indexInBlock || 0;
     if (type === PoolType.Transfer && pairData.extrinsic?.signature?.address?.value) {
       this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address.value);
     }

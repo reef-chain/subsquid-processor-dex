@@ -282,7 +282,7 @@ export class PoolResolver {
       FROM pool_event
       INNER JOIN pool ON pool_event.pool_id = pool.id
       WHERE pool_event.type = 'Sync' AND pool_event.timestamp < $1
-      ORDER BY pool_id ASC, timestamp DESC;
+      ORDER BY pool_id ASC, id DESC;
     `;
     let result = await manager.query(query, [toTime]);
     result = result.map((row: any) => {
@@ -433,7 +433,7 @@ export class PoolResolver {
       SELECT reserved1, reserved2
       FROM pool_event
       WHERE pool_id = $1 AND type = 'Sync'
-      ORDER BY timestamp DESC
+      ORDER BY id DESC
       LIMIT 1
     `;
     let resultReserves = await manager.query(queryReserves, [address]);
@@ -448,7 +448,7 @@ export class PoolResolver {
       SELECT total_supply
       FROM pool_event
       WHERE pool_id = $1 AND type = 'Transfer'
-      ORDER BY timestamp DESC
+      ORDER BY id DESC
       LIMIT 1
     `;
     let resultTotalSupply = await manager.query(queryTotalSupply, [address]);
@@ -464,7 +464,7 @@ export class PoolResolver {
       fee: resultFee[0] || {},
       currentDayVolume: resultCurrentDayVolume[0] || {},
       previousDayVolume: resultPreviousDayVolume[0] || {},
-      reserves: resultReserves[0] || 0n,
+      reserves: resultReserves[0] || new ReservesObject({reserved1: 0n, reserved2: 0n}),
       totalSupply: resultTotalSupply[0]?.total_supply || 0n,
       userSupply: resultUserSupply[0]?.supply || 0n,
     });
@@ -485,7 +485,7 @@ export class PoolResolver {
       JOIN token AS t1 ON p.token1_id = t1.id
       JOIN token AS t2 ON p.token2_id = t2.id
       WHERE pe.type = 'Sync'
-      ORDER BY pool_id ASC, timestamp DESC
+      ORDER BY pool_id ASC, id DESC
     `;
     let result = await manager.query(query);
     result = result.map((row: any) => {
@@ -620,7 +620,7 @@ export class PoolResolver {
       SELECT reserved1, reserved2
       FROM pool_event
       WHERE pool_id = $1 AND type = 'Sync'
-      ORDER BY timestamp DESC
+      ORDER BY id DESC
       LIMIT 1
     `;
     const resultReserves = await manager.query(queryReserves, [resultPool[0].id]);
@@ -631,7 +631,7 @@ export class PoolResolver {
       SELECT total_supply
       FROM pool_event
       WHERE pool_id = $1 AND type = 'Transfer'
-      ORDER BY timestamp DESC
+      ORDER BY id DESC
       LIMIT 1
     `;
     let resultTotalSupply = await manager.query(queryTotalSupply, [resultPool[0].id]);
@@ -664,7 +664,7 @@ export class PoolResolver {
       FROM pool_event
       INNER JOIN pool ON pool_event.pool_id = pool.id
       WHERE pool_event.type = 'Sync' AND pool.token1_id = ANY($1::text[]) AND pool.token2_id = ANY($1::text[])
-      ORDER BY pool_id ASC, timestamp DESC;
+      ORDER BY pool_id ASC, id DESC;
     `;
     let result = await manager.query(query, [tokens]);
     result = result.map((row: any) => {
