@@ -485,7 +485,7 @@ export class PoolResolver {
       JOIN token AS t1 ON p.token1_id = t1.id
       JOIN token AS t2 ON p.token2_id = t2.id
       WHERE pe.type = 'Sync'
-      ORDER BY pool_id ASC, id DESC
+      ORDER BY pool_id ASC, pe.id DESC
     `;
     let result = await manager.query(query);
     result = result.map((row: any) => {
