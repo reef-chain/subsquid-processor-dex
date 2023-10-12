@@ -5,6 +5,7 @@ import * as erc20 from "../../abi/ERC20";
 import * as factory from "../../abi/ReefswapV2Factory";
 import { Pool, Token } from '../../model';
 import { isApprovedContract, verifyPool } from './poolVerification';
+import { getTokenIcon } from '../../util/util';
 
 class FactoryEvent extends PoolEventBase<EventRaw> {
   static verify = false;
@@ -43,7 +44,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
         let name1, symbol1, iconUrl1;
         try { name1 = await contract1.name(); } catch (e) { }
         try { symbol1 = await contract1.symbol() } catch (e) { }
-        try { iconUrl1 = await contract1.iconUri(); } catch (e) { }
+        try { iconUrl1 = await contract1.iconUri() || await getTokenIcon(this.tokenAddress1); } catch (e) { }
 
         const approved1 = await isApprovedContract(this.tokenAddress1);
 
@@ -68,7 +69,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
         let name2, symbol2, iconUrl2;
         try { name2 = await contract2.name(); } catch (e) { }
         try { symbol2 = await contract2.symbol() } catch (e) { }
-        try { iconUrl2 = await contract2.iconUri(); } catch (e) { }
+        try { iconUrl2 = await contract2.iconUri() || await getTokenIcon(this.tokenAddress2); } catch (e) { }
 
         const approved2 = await isApprovedContract(this.tokenAddress2);
 
