@@ -44,7 +44,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
         let name1, symbol1, iconUrl1;
         try { name1 = await contract1.name(); } catch (e) { }
         try { symbol1 = await contract1.symbol() } catch (e) { }
-        try { iconUrl1 = await contract1.iconUri() || await getTokenIcon(this.tokenAddress1); } catch (e) { }
+        try { iconUrl1 = await contract1.iconUri() } catch (e) { iconUrl1 = await getTokenIcon(this.tokenAddress1); }
 
         const approved1 = await isApprovedContract(this.tokenAddress1);
 
@@ -69,7 +69,7 @@ class FactoryEvent extends PoolEventBase<EventRaw> {
         let name2, symbol2, iconUrl2;
         try { name2 = await contract2.name(); } catch (e) { }
         try { symbol2 = await contract2.symbol() } catch (e) { }
-        try { iconUrl2 = await contract2.iconUri() || await getTokenIcon(this.tokenAddress2); } catch (e) { }
+        try { iconUrl2 = await contract2.iconUri() } catch (e) { iconUrl2 = await getTokenIcon(this.tokenAddress2); }
 
         const approved2 = await isApprovedContract(this.tokenAddress2);
 
