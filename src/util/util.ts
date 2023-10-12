@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import * as ss58 from "@subsquid/ss58";
 import axios from "axios";
 
-const TOKEN_CONTRACT_DATA_QUERY = `query TokenContractData($accountId: String) {
+const TOKEN_CONTRACT_DATA_QUERY = `query TokenContractData($accountId: String!) {
     verifiedContractById(id: $accountId) {
       contractData
     }
