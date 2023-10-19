@@ -269,6 +269,19 @@ export class PoolPositionObject {
   }
 }
 
+@ObjectType()
+export class CountSwapsByUserObject {
+  @Field(() => String, { nullable: false })
+  address!: string;
+
+  @Field(() => Int, { nullable: false })
+  count!: number;
+
+  constructor(props: Partial<CountSwapsByUserObject>) {
+    Object.assign(this, props);
+  }
+}
+
 @Resolver()
 export class PoolResolver {
   constructor(private tx: () => Promise<EntityManager>) {}
@@ -679,6 +692,31 @@ export class PoolResolver {
     return result;
   }
 
+  @Query(() => [CountSwapsByUserObject])
+  async countSwapsByUser(
+    @Arg('fromTime') fromTime: string,
+    @Arg('limit') limit: number,
+  ): Promise<CountSwapsByUserObject[]> {
+    const manager = await this.tx();
+
+    const query = `
+      SELECT signer_address, COUNT(*) AS swap_count
+      FROM pool_event
+      WHERE type = 'Swap' AND timestamp >= $1
+      GROUP BY signer_address
+      ORDER BY swap_count DESC
+      LIMIT $2;
+    `;
+    let result = await manager.query(query, [fromTime, limit]);
+    result = result.map((row: any) => {
+      return new CountSwapsByUserObject({
+        address: row.signer_address,
+        count: row.swap_count,
+      });
+    });
+
+    return result;
+  }
 }
 
 export {

@@ -47,7 +47,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
     this.indexInBlock = pairData.extrinsic?.indexInBlock || 0;
-    if (type === PoolType.Transfer && pairData.extrinsic?.signature?.address?.value) {
+    if (pairData.extrinsic?.signature?.address?.value) {
       this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address.value);
     }
   }
