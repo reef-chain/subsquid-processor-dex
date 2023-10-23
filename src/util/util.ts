@@ -39,6 +39,7 @@ const convertIconUrl = (tokenUrl:string):string=>{
   }
 
 export const getTokenIcon = async(address:string)=>{
+  try {
     const requestBody  = {
         method: "post",
         url: process.env.EXPLORER_INDEXER,
@@ -49,5 +50,8 @@ export const getTokenIcon = async(address:string)=>{
       };
       const response = await axios(requestBody);
       return convertIconUrl(response.data.data.verifiedContractById.contractData.iconUrl);
+  } catch (error) {
+    return '';
+  }
 }
 

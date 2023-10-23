@@ -4,6 +4,7 @@ import { BigInteger, DateTime } from '@subsquid/graphql-server';
 import type { EntityManager } from 'typeorm'
 import { PoolListsResolver } from "./poolLists";
 import { TokensResolver } from "./tokens";
+import { PoolType } from "../../model";
 
 @ObjectType()
 export class Ping {
@@ -270,14 +271,14 @@ export class PoolPositionObject {
 }
 
 @ObjectType()
-export class CountSwapsByUserObject {
+export class CountPoolEventsByUserObject {
   @Field(() => String, { nullable: false })
   address!: string;
 
   @Field(() => Int, { nullable: false })
   count!: number;
 
-  constructor(props: Partial<CountSwapsByUserObject>) {
+  constructor(props: Partial<CountPoolEventsByUserObject>) {
     Object.assign(this, props);
   }
 }
@@ -692,24 +693,25 @@ export class PoolResolver {
     return result;
   }
 
-  @Query(() => [CountSwapsByUserObject])
-  async countSwapsByUser(
+  @Query(() => [CountPoolEventsByUserObject])
+  async countPoolEventsByUser(
+    @Arg('poolEventType') poolEventType: PoolType,
     @Arg('fromTime') fromTime: string,
     @Arg('limit') limit: number,
-  ): Promise<CountSwapsByUserObject[]> {
+  ): Promise<CountPoolEventsByUserObject[]> {
     const manager = await this.tx();
 
     const query = `
       SELECT signer_address, COUNT(*) AS swap_count
       FROM pool_event
-      WHERE type = 'Swap' AND timestamp >= $1
+      WHERE type = $1 AND timestamp >= $2
       GROUP BY signer_address
       ORDER BY swap_count DESC
-      LIMIT $2;
+      LIMIT $3;
     `;
-    let result = await manager.query(query, [fromTime, limit]);
+    let result = await manager.query(query, [poolEventType, fromTime, limit]);
     result = result.map((row: any) => {
-      return new CountSwapsByUserObject({
+      return new CountPoolEventsByUserObject({
         address: row.signer_address,
         count: row.swap_count,
       });
