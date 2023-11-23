@@ -1,4 +1,4 @@
-import { utils } from 'ethers';
+import ethers from 'ethers';
 import { PoolType } from '../../model';
 import PoolEvent, { PoolEventData } from './PoolEvent';
 
@@ -7,7 +7,7 @@ class SwapEvent extends PoolEvent {
     super(poolEvent, PoolType.Swap);
   }
 
-  async process(event: utils.LogDescription): Promise<void> {
+  async process(event: ethers.LogDescription): Promise<void> {
     await super.process(event);
 
     const [address, amoin1, amoin2, amo1, amo2, to] = event.args;

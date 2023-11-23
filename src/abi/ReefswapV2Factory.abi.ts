@@ -1,6 +1,7 @@
 export const ABI_JSON = [
     {
         "type": "constructor",
+        "stateMutability": "undefined",
         "payable": false,
         "inputs": [
             {
@@ -31,6 +32,7 @@ export const ABI_JSON = [
             },
             {
                 "type": "uint256",
+                "name": "",
                 "indexed": false
             }
         ]
@@ -43,12 +45,14 @@ export const ABI_JSON = [
         "payable": false,
         "inputs": [
             {
-                "type": "uint256"
+                "type": "uint256",
+                "name": ""
             }
         ],
         "outputs": [
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             }
         ]
     },
@@ -61,7 +65,8 @@ export const ABI_JSON = [
         "inputs": [],
         "outputs": [
             {
-                "type": "uint256"
+                "type": "uint256",
+                "name": ""
             }
         ]
     },
@@ -96,7 +101,8 @@ export const ABI_JSON = [
         "inputs": [],
         "outputs": [
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             }
         ]
     },
@@ -109,7 +115,8 @@ export const ABI_JSON = [
         "inputs": [],
         "outputs": [
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             }
         ]
     },
@@ -121,15 +128,18 @@ export const ABI_JSON = [
         "payable": false,
         "inputs": [
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             },
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             }
         ],
         "outputs": [
             {
-                "type": "address"
+                "type": "address",
+                "name": ""
             }
         ]
     },

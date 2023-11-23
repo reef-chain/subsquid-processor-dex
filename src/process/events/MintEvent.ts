@@ -1,4 +1,4 @@
-import { utils } from 'ethers';
+import ethers from 'ethers';
 import { PoolType } from '../../model';
 import { ctx } from '../../processor';
 import PoolEvent, { PoolEventData } from './PoolEvent';
@@ -8,7 +8,7 @@ class MintEvent extends PoolEvent {
     super(poolEvent, PoolType.Mint);
   }
 
-  async process(event: utils.LogDescription): Promise<void> {
+  async process(event: ethers.LogDescription): Promise<void> {
     await super.process(event);
     const [address, amount0, amount1] = event.args;
     this.senderAddress = address;

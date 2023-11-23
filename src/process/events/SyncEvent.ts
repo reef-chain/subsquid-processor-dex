@@ -1,4 +1,4 @@
-import { utils } from 'ethers';
+import ethers from 'ethers';
 import PoolEvent, { PoolEventData } from './PoolEvent';
 import { ctx } from '../../processor';
 import { PoolType } from '../../model';
@@ -8,7 +8,7 @@ class SyncEvent extends PoolEvent {
     super(poolEvent, PoolType.Sync);
   }
 
-  async process(event: utils.LogDescription): Promise<void> {
+  async process(event: ethers.LogDescription): Promise<void> {
     await super.process(event);
 
     this.reserved1 = event.args[0].toString();

@@ -104,7 +104,8 @@ To generate a type-safe facade class to decode EVM logs, use `squid-evm-typegen(
 npx squid-evm-typegen src/abi src/abi/ERC1155.json
 ```
 
-And replace the following code in generated abi.support.ts
+And replace the following code in generated the generated `abi.support.ts` file:
+
 ```js
 let result = await this._chain.client.call('eth_call', [
       {to: this.address, data},
@@ -120,6 +121,7 @@ let result = await this._chain.client.call('evm_call', [
 ```
 
 ### View tables
+
 Currently Subsquid does not have a direct support for views generation. In order to create and expose custom view tables:
 
 1. Create a custom script with the corresponding insertions of functions and views to the database and place it in `db/migrations` directory.

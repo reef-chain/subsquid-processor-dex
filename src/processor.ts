@@ -1,59 +1,60 @@
 import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
-import {
-  BatchContext,
-  BatchProcessorItem,
-  SubstrateBatchProcessor,
-} from "@subsquid/substrate-processor";
+import { DataHandlerContext, SubstrateBatchProcessor } from "@subsquid/substrate-processor";
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
+import ethers from "ethers";
 import * as ReefswapV2Factory from "./abi/ReefswapV2Factory";
 import * as ReefswapV2Pair from "./abi/ReefswapV2Pair";
-import { EventRaw } from "./interfaces/interfaces";
 import FactoryEvent from "./process/events/FactoryEvent";
 import { PairEvent } from "./process/events/PoolEvent";
-import { toChecksumAddress } from "./util/util";
 import PoolEventBase from "./process/events/PoolEventBase";
-import { utils } from "ethers";
 import MintEvent from "./process/events/MintEvent";
 import BurnEvent from "./process/events/BurnEvent";
 import SwapEvent from "./process/events/SwapEvent";
 import SyncEvent from "./process/events/SyncEvent";
 import TransferEvent from "./process/events/TransferEvent";
 import EmptyEvent from "./process/events/EmptyEvent";
+import { verifyAll } from "./process/events/poolVerification";
 import { Pool, PoolType } from "./model";
 import { PoolEvent as PoolEventModel } from './model';
-import { verifyAll } from "./process/events/poolVerification";
+import { toChecksumAddress } from "./util/util";
 
 const RPC_URL = process.env.NODE_RPC_WS;
 const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
 console.log(' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
-const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME);
+const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, { release: 'ArrowSquid' });
 const START_BLOCK = parseInt(process.env.START_BLOCK || '1') || 1;
 const VERIFICATION_BATCH_INTERVAL = parseInt(process.env.VERIFICATION_BATCH_INTERVAL || '0');
 
 const database = new TypeormDatabase();
+const fields = {
+  event: { phase: true },
+  extrinsic: { signature: true },
+  block: { timestamp: true }
+};
+export type Fields = typeof fields;
+
 const processor = new SubstrateBatchProcessor()
   .setBlockRange({ from: START_BLOCK })
-  .setDataSource({ chain: RPC_URL, archive: ARCHIVE })
-  .addEvmLog(FACTORY_ADDRESS, {
-    filter: [ReefswapV2Factory.events.PairCreated.topic],
-    data: { event: { args: true } }
+  .setDataSource({ chain: { url: RPC_URL!, rateLimit: 10 }, archive: ARCHIVE })
+  .addEvmLog({
+    address: [FACTORY_ADDRESS],
+    topic0: [ReefswapV2Factory.events.PairCreated.topic],
   })
-  .addEvmLog("*", {
-    filter: [[
+  .addEvmLog({
+    address: undefined, // TODO does this process all?
+    topic0: [
       ReefswapV2Pair.events.Mint.topic, 
       ReefswapV2Pair.events.Burn.topic,
       ReefswapV2Pair.events.Swap.topic, 
       ReefswapV2Pair.events.Sync.topic, 
       ReefswapV2Pair.events.Transfer.topic
-    ]],
-    data: { event: { args: true, extrinsic: true } }
+    ],
   })
-  .includeAllBlocks(); ;
+  .setFields(fields)
+  .includeAllBlocks();
 
-export type Item = BatchProcessorItem<typeof processor>;
-export type Context = BatchContext<Store, Item>;
-export let ctx: Context;
+export let ctx: DataHandlerContext<Store, Fields>;
 
 // Avoid type errors when serializing BigInts
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
@@ -84,51 +85,50 @@ processor.run(database, async (ctx_) => {
   for (const block of ctx.blocks) {
     ctx.log.info(`Processing block ${block.header.height} [${ctx.blocks[0].header.height} - ${ctx.blocks[ctx.blocks.length - 1].header.height}]`);
     // Process block events
-    for (const item of block.items) {
-      if (item.name === 'EVM.Log') {
-        const eventRaw = item.event as EventRaw;
-        if (eventRaw.args.topics[0] === ReefswapV2Factory.events.PairCreated.topic) {
+    for (const event of block.events) {
+      // if (event.name === 'EVM.Log') { // TODO is this required?
+        if (event.args.topics[0] === ReefswapV2Factory.events.PairCreated.topic) {
           // Add new pool in DB
-          const factoryEvent = new FactoryEvent(eventRaw.id);
-          await factoryEvent.combine(eventRaw, block.header);
+          const factoryEvent = new FactoryEvent(event.id);
+          await factoryEvent.combine(event, block.header);
 
           // Create simulated initial sync event. This is needed to find pool reserves in queries.
           const pool = await ctx.store.get(Pool, factoryEvent.poolAddress!);
           if (!pool) throw new Error(`Pool with id ${factoryEvent.poolAddress!} not created`);
           const initialSyncEvent = new PoolEventModel({
-            id: eventRaw.id,
+            id: event.id,
             pool,
             blockHeight: block.header.height,
             indexInBlock: 0,
             type: PoolType.Sync,
             reserved1: 0n,
             reserved2: 0n,
-            timestamp: new Date(block.header.timestamp),
+            timestamp: new Date(block.header.timestamp!),
           });
           await ctx.store.save(initialSyncEvent);
         } else {
-          const pool = await ctx.store.get(Pool, toChecksumAddress(eventRaw.args.address));
+          const pool = await ctx.store.get(Pool, toChecksumAddress(event.args.address));
           if (pool) {
             // Process pool event
             const pairEvent: PairEvent = {
               poolId: pool.id,
-              eventId: eventRaw.id,
-              rawData: eventRaw.args,
+              eventId: event.id,
+              rawData: event.args,
               blockHeight: block.header.height,
-              timestamp: new Date(block.header.timestamp),
-              topic0: eventRaw.args.topics[0] || "",
-              extrinsic: eventRaw.extrinsic
+              timestamp: new Date(block.header.timestamp!),
+              topic0: event.args.topics[0] || "",
+              extrinsic: event.extrinsic
             };
             await processPairEvent(pairEvent);
           }
         }
-      }
+      // }
     }
     ctx.log.info(`Block ${block.header.height} processed`);
   }
 });
 
-const selectPoolEvent = (pairEvent: PairEvent): PoolEventBase<utils.LogDescription> => {
+const selectPoolEvent = (pairEvent: PairEvent): PoolEventBase<ethers.LogDescription> => {
   switch (pairEvent.topic0) {
       case ReefswapV2Pair.events.Mint.topic:
           return new MintEvent(pairEvent);
@@ -147,6 +147,7 @@ const selectPoolEvent = (pairEvent: PairEvent): PoolEventBase<utils.LogDescripti
 
 const processPairEvent = async (pairEvent: PairEvent): Promise<void> => {
   const data = ReefswapV2Pair.abi.parseLog(pairEvent.rawData);
+  if (!data) return;
   ctx.log.info(`Pair: ${data.name} event detected!`);
 
   const event = selectPoolEvent(pairEvent);
