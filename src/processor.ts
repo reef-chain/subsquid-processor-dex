@@ -1,7 +1,7 @@
 import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
 import { DataHandlerContext, SubstrateBatchProcessor } from "@subsquid/substrate-processor";
 import { KnownArchives, lookupArchive } from "@subsquid/archive-registry";
-import ethers from "ethers";
+import { ethers } from "ethers";
 import * as ReefswapV2Factory from "./abi/ReefswapV2Factory";
 import * as ReefswapV2Pair from "./abi/ReefswapV2Pair";
 import FactoryEvent from "./process/events/FactoryEvent";
@@ -42,7 +42,7 @@ const processor = new SubstrateBatchProcessor()
     topic0: [ReefswapV2Factory.events.PairCreated.topic],
   })
   .addEvmLog({
-    address: undefined, // TODO does this process all?
+    address: undefined,
     topic0: [
       ReefswapV2Pair.events.Mint.topic, 
       ReefswapV2Pair.events.Burn.topic,
@@ -50,6 +50,7 @@ const processor = new SubstrateBatchProcessor()
       ReefswapV2Pair.events.Sync.topic, 
       ReefswapV2Pair.events.Transfer.topic
     ],
+    extrinsic: true,
   })
   .setFields(fields)
   .includeAllBlocks();
@@ -60,7 +61,7 @@ export let ctx: DataHandlerContext<Store, Fields>;
 (BigInt.prototype as any).toJSON = function () { return this.toString(); };
 
 let isFirstBatch = true;
-let nextBatchVerification = VERIFICATION_BATCH_INTERVAL;
+let nextBatchVerification = 0;
 
 processor.run(database, async (ctx_) => {
   ctx = ctx_;
@@ -68,16 +69,17 @@ processor.run(database, async (ctx_) => {
   const currentBlock = ctx.blocks[0].header.height;
 
   if (isFirstBatch) {
-    // Initialize token prices on previous block
     FactoryEvent.verify = process.env.VERIFY_POOLS === 'true';
-
     isFirstBatch = false;
-    await verifyAll();
-    nextBatchVerification = currentBlock + VERIFICATION_BATCH_INTERVAL;
+
+    if (FactoryEvent.verify) {
+      await verifyAll();
+      nextBatchVerification = currentBlock + VERIFICATION_BATCH_INTERVAL;
+    }
   }
 
   // Verify all unverified every n blocks
-  if (nextBatchVerification && currentBlock >= nextBatchVerification) {
+  if (nextBatchVerification > 0 && currentBlock >= nextBatchVerification) {
     await verifyAll();
     nextBatchVerification += VERIFICATION_BATCH_INTERVAL;
   }
@@ -86,7 +88,8 @@ processor.run(database, async (ctx_) => {
     ctx.log.info(`Processing block ${block.header.height} [${ctx.blocks[0].header.height} - ${ctx.blocks[ctx.blocks.length - 1].header.height}]`);
     // Process block events
     for (const event of block.events) {
-      // if (event.name === 'EVM.Log') { // TODO is this required?
+      if (event.name !== 'EVM.Log') throw new Error(`Unexpected event name: ${event.name}`); // TODO remove
+      // if (event.name === 'EVM.Log') { // TODO remove if not needed
         if (event.args.topics[0] === ReefswapV2Factory.events.PairCreated.topic) {
           // Add new pool in DB
           const factoryEvent = new FactoryEvent(event.id);
@@ -117,7 +120,7 @@ processor.run(database, async (ctx_) => {
               blockHeight: block.header.height,
               timestamp: new Date(block.header.timestamp!),
               topic0: event.args.topics[0] || "",
-              extrinsic: event.extrinsic
+              extrinsic: event.extrinsic!
             };
             await processPairEvent(pairEvent);
           }

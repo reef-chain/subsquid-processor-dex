@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from 'ethers';
 import { PoolEvent as PoolEventModel, PoolType } from '../../model';
 import { ctx } from '../../processor';
 import PoolEvent, { PoolEventData } from './PoolEvent';
@@ -24,7 +24,7 @@ class TransferEvent extends PoolEvent {
     const isMint = addr1 === ethers.ZeroAddress;
     const prev = BigInt((prevSupply?.totalSupply || 0).toString());
 
-    this.totalSupply = (isMint ? prev + amount : prev - amount).toString(); // TODO
+    this.totalSupply = (isMint ? prev + amount : prev - amount).toString();
     this.supply = `${!isMint ? '-' : ''}${amount.toString()}`;    
 
     ctx.log.info(`Transfer event processed! \n\tPool id:${this.poolId}\n\tSupply: ${this.supply}\n\tTotal supply: ${this.totalSupply}`);

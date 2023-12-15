@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from "ethers";
 import PoolEvent, { PoolEventData } from './PoolEvent';
 import { ctx } from '../../processor';
 import { PoolType } from '../../model';

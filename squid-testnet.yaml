@@ -34,3 +34,6 @@ deploy:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - ADMIN_KEY
+
+scale:
+  dedicated: true

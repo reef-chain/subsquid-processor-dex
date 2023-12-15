@@ -1,4 +1,4 @@
-import ethers from 'ethers';
+import { ethers } from "ethers";
 import { Extrinsic } from '@subsquid/substrate-processor';
 import { Fields, ctx } from '../../processor';
 import PoolEventBase from './PoolEventBase';
@@ -17,12 +17,17 @@ export interface PoolEventData {
   blockHeight: number;
   eventId: string;
   timestamp: Date;
-  extrinsic?: Extrinsic<Fields>;
+  extrinsic: Extrinsic<Fields>;
 }
 
 export interface PairEvent extends PoolEventData {
   rawData: RawEventData;
   topic0: string;
+}
+
+interface DataRawAddress {
+  __kind: 'Id'
+  value: string
 }
 
 class PoolEvent extends PoolEventBase<ethers.LogDescription> {
@@ -52,10 +57,11 @@ class PoolEvent extends PoolEventBase<ethers.LogDescription> {
     this.poolId = pairData.poolId;
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
-    this.indexInBlock = pairData.extrinsic?.index || 0;
-    if (pairData.extrinsic?.signature?.address) {
-      this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address as string);
-    }
+    this.indexInBlock = pairData.extrinsic.index || 0;
+    // if (pairData.extrinsic.signature?.address) { // TODO remove if not needed
+    const addressHex = (pairData.extrinsic.signature!.address as DataRawAddress).value;
+    this.signerAddress = hexToNativeAddress(addressHex);
+    // }
   }
 
   // Available for child classes before saving

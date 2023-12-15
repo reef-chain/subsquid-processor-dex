@@ -42,10 +42,11 @@ class FactoryEvent extends PoolEventBase<Event<Fields>> {
           this.tokenAddress1
         );
 
-        let decimals1;
-        try { decimals1 = await contract1.decimals(); } catch (e) { }
-
-        let name1, symbol1, iconUrl1;
+        let decimals1, name1, symbol1, iconUrl1;
+        try { decimals1 = await contract1.decimals(); } catch (e) { 
+          ctx.log.error(`Failed to get decimals for token ${this.tokenAddress1}. Not ERC20 compliant.`);
+          return;
+        }
         try { name1 = await contract1.name(); } catch (e) { }
         try { symbol1 = await contract1.symbol() } catch (e) { }
         try { iconUrl1 = await contract1.iconUri() } catch (e) { iconUrl1 = await getTokenIcon(this.tokenAddress1); }
@@ -57,7 +58,7 @@ class FactoryEvent extends PoolEventBase<Event<Fields>> {
           name: name1 || '',
           symbol: symbol1 || '',
           iconUrl: iconUrl1 || '',
-          decimals: decimals1 || 0,
+          decimals: decimals1,
           approved: approved1,
         });
         await ctx.store.save(token1);
@@ -71,10 +72,11 @@ class FactoryEvent extends PoolEventBase<Event<Fields>> {
           this.tokenAddress2
         );
 
-        let decimals2;
-        try { decimals2 = await contract2.decimals(); } catch (e) { }
-
-        let name2, symbol2, iconUrl2;
+        let decimals2, name2, symbol2, iconUrl2;
+        try { decimals2 = await contract2.decimals(); } catch (e) { 
+          ctx.log.error(`Failed to get decimals for token ${this.tokenAddress2}. Not ERC20 compliant.`);
+          return;
+        }
         try { name2 = await contract2.name(); } catch (e) { }
         try { symbol2 = await contract2.symbol() } catch (e) { }
         try { iconUrl2 = await contract2.iconUri() } catch (e) { iconUrl2 = await getTokenIcon(this.tokenAddress2); }
@@ -86,7 +88,7 @@ class FactoryEvent extends PoolEventBase<Event<Fields>> {
           name: name2 || '',
           symbol: symbol2 || '',
           iconUrl: iconUrl2 || '',
-          decimals: decimals2 || 0,
+          decimals: decimals2,
           approved: approved2,
         });
         await ctx.store.save(token2);
