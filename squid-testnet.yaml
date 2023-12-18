@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap-testnet
-version: 4
+version: 5
 description: |-
   Reef Swap testnet data
 
@@ -18,9 +18,9 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        "0x8Fc2f9577f6c58e6A91C4A80B45C03d1e71c031f"
+        "TODO"
       VERIFY_POOLS:
-        true
+        false
       VERIFICATION_API_URL:
         https://api-testnet.reefscan.com
       VERIFICATION_BATCH_INTERVAL:
@@ -35,5 +35,5 @@ deploy:
   secrets:
     - ADMIN_KEY
 
-scale:
-  dedicated: true
+# scale:
+#   dedicated: true
