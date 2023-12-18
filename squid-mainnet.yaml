@@ -21,6 +21,8 @@ deploy:
         "0x380a9033500154872813F6E1120a81ed6c0760a8"
       VERIFY_POOLS:
         false
+      USE_ONLY_RPC:
+        false
       VERIFICATION_API_URL:
         https://api.reefscan.com
       VERIFICATION_BATCH_INTERVAL:

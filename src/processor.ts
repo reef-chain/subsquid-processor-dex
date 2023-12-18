@@ -21,10 +21,17 @@ import { toChecksumAddress } from "./util/util";
 const RPC_URL = process.env.NODE_RPC_WS;
 const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
-console.log(' RPC=', RPC_URL, ' AQUARIUM_ARCHIVE_NAME=', AQUARIUM_ARCHIVE_NAME, ' FACTORY_ADDRESS=', FACTORY_ADDRESS);
-const ARCHIVE = lookupArchive(AQUARIUM_ARCHIVE_NAME, { release: 'ArrowSquid' });
+const USE_ONLY_RPC = process.env.USE_ONLY_RPC === 'true';
+const ARCHIVE = USE_ONLY_RPC ? undefined : lookupArchive(AQUARIUM_ARCHIVE_NAME, { release: 'ArrowSquid' });
 const START_BLOCK = parseInt(process.env.START_BLOCK || '1') || 1;
 const VERIFICATION_BATCH_INTERVAL = parseInt(process.env.VERIFICATION_BATCH_INTERVAL || '0');
+console.log(`
+    RPC URL: ${RPC_URL}
+    Reefswap Factory: ${FACTORY_ADDRESS}
+    Archive: ${USE_ONLY_RPC ? 'None' : ARCHIVE}
+    Veirification interval: ${VERIFICATION_BATCH_INTERVAL}
+    Start block: ${START_BLOCK}
+`);
 
 const database = new TypeormDatabase();
 const fields = {

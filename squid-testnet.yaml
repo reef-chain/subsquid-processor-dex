@@ -21,6 +21,8 @@ deploy:
         "TODO"
       VERIFY_POOLS:
         false
+      USE_ONLY_RPC:
+        false
       VERIFICATION_API_URL:
         https://api-testnet.reefscan.com
       VERIFICATION_BATCH_INTERVAL:
