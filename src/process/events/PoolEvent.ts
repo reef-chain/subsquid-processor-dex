@@ -58,10 +58,8 @@ class PoolEvent extends PoolEventBase<ethers.LogDescription> {
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
     this.indexInBlock = pairData.extrinsic.index || 0;
-    // if (pairData.extrinsic.signature?.address) { // TODO remove if not needed
     const addressHex = (pairData.extrinsic.signature!.address as DataRawAddress).value;
     this.signerAddress = hexToNativeAddress(addressHex);
-    // }
   }
 
   // Available for child classes before saving

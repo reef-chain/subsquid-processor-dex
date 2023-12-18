@@ -88,44 +88,41 @@ processor.run(database, async (ctx_) => {
     ctx.log.info(`Processing block ${block.header.height} [${ctx.blocks[0].header.height} - ${ctx.blocks[ctx.blocks.length - 1].header.height}]`);
     // Process block events
     for (const event of block.events) {
-      if (event.name !== 'EVM.Log') throw new Error(`Unexpected event name: ${event.name}`); // TODO remove
-      // if (event.name === 'EVM.Log') { // TODO remove if not needed
-        if (event.args.topics[0] === ReefswapV2Factory.events.PairCreated.topic) {
-          // Add new pool in DB
-          const factoryEvent = new FactoryEvent(event.id);
-          await factoryEvent.combine(event, block.header);
+      if (event.args.topics[0] === ReefswapV2Factory.events.PairCreated.topic) {
+        // Add new pool in DB
+        const factoryEvent = new FactoryEvent(event.id);
+        await factoryEvent.combine(event, block.header);
 
-          // Create simulated initial sync event. This is needed to find pool reserves in queries.
-          const pool = await ctx.store.get(Pool, factoryEvent.poolAddress!);
-          if (!pool) throw new Error(`Pool with id ${factoryEvent.poolAddress!} not created`);
-          const initialSyncEvent = new PoolEventModel({
-            id: event.id,
-            pool,
+        // Create simulated initial sync event. This is needed to find pool reserves in queries.
+        const pool = await ctx.store.get(Pool, factoryEvent.poolAddress!);
+        if (!pool) throw new Error(`Pool with id ${factoryEvent.poolAddress!} not created`);
+        const initialSyncEvent = new PoolEventModel({
+          id: event.id,
+          pool,
+          blockHeight: block.header.height,
+          indexInBlock: 0,
+          type: PoolType.Sync,
+          reserved1: 0n,
+          reserved2: 0n,
+          timestamp: new Date(block.header.timestamp!),
+        });
+        await ctx.store.save(initialSyncEvent);
+      } else {
+        const pool = await ctx.store.get(Pool, toChecksumAddress(event.args.address));
+        if (pool) {
+          // Process pool event
+          const pairEvent: PairEvent = {
+            poolId: pool.id,
+            eventId: event.id,
+            rawData: event.args,
             blockHeight: block.header.height,
-            indexInBlock: 0,
-            type: PoolType.Sync,
-            reserved1: 0n,
-            reserved2: 0n,
             timestamp: new Date(block.header.timestamp!),
-          });
-          await ctx.store.save(initialSyncEvent);
-        } else {
-          const pool = await ctx.store.get(Pool, toChecksumAddress(event.args.address));
-          if (pool) {
-            // Process pool event
-            const pairEvent: PairEvent = {
-              poolId: pool.id,
-              eventId: event.id,
-              rawData: event.args,
-              blockHeight: block.header.height,
-              timestamp: new Date(block.header.timestamp!),
-              topic0: event.args.topics[0] || "",
-              extrinsic: event.extrinsic!
-            };
-            await processPairEvent(pairEvent);
-          }
+            topic0: event.args.topics[0] || "",
+            extrinsic: event.extrinsic!
+          };
+          await processPairEvent(pairEvent);
         }
-      // }
+      }
     }
     ctx.log.info(`Block ${block.header.height} processed`);
   }
