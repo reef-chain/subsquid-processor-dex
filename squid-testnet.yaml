@@ -18,11 +18,11 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        "TODO"
+        "0x9b9a32c56c8F5C131000Acb420734882Cc601d39"
       VERIFY_POOLS:
-        false
+        true
       USE_ONLY_RPC:
-        false
+        true
       VERIFICATION_API_URL:
         https://api-testnet.reefscan.com
       VERIFICATION_BATCH_INTERVAL:
@@ -37,5 +37,5 @@ deploy:
   secrets:
     - ADMIN_KEY
 
-# scale:
-#   dedicated: true
+scale:
+  dedicated: true
