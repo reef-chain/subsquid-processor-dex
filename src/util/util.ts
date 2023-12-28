@@ -17,7 +17,7 @@ const getContractDataQry = (accountId: string) => {
 
 export const REEF_CONTRACT_ADDRESS = '0x0000000000000000000000000000000001000000';
 
-export const toChecksumAddress = (address: string): string => ethers.utils.getAddress(address.trim().toLowerCase());
+export const toChecksumAddress = (address: string): string => ethers.getAddress(address.trim().toLowerCase());
 
 export const hexToNativeAddress = (address: string | undefined): string => {
     if (!address) return '0x';

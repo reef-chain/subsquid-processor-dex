@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap
-version: 4
+version: 5
 description: |-
   Reef Swap data
 
@@ -20,7 +20,9 @@ deploy:
       FACTORY_ADDRESS:
         "0x380a9033500154872813F6E1120a81ed6c0760a8"
       VERIFY_POOLS:
-        true
+        false
+      USE_ONLY_RPC:
+        false
       VERIFICATION_API_URL:
         https://api.reefscan.com
       VERIFICATION_BATCH_INTERVAL:

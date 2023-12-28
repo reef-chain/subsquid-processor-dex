@@ -1,4 +1,4 @@
-import { SubstrateBlock } from "@subsquid/substrate-processor";
+import { BlockHeader } from "@subsquid/substrate-processor";
 
 class PoolEventBase <T> {
   evmEventId: string;
@@ -11,7 +11,7 @@ class PoolEventBase <T> {
 
   async save(): Promise<void> { }
 
-  async combine(event: T, block?: SubstrateBlock): Promise<void> {
+  async combine(event: T, block?: BlockHeader): Promise<void> {
     await this.process(event, block?.height);
     await this.save();
   }
