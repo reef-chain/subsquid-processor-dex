@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap-testnet
-version: 4
+version: 5
 description: |-
   Reef Swap testnet data
 
@@ -18,8 +18,10 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        "0x8Fc2f9577f6c58e6A91C4A80B45C03d1e71c031f"
+        "0x9b9a32c56c8F5C131000Acb420734882Cc601d39"
       VERIFY_POOLS:
+        true
+      USE_ONLY_RPC:
         true
       VERIFICATION_API_URL:
         https://api-testnet.reefscan.com
@@ -34,3 +36,6 @@ deploy:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - ADMIN_KEY
+
+scale:
+  dedicated: true

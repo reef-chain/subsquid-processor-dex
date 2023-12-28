@@ -1,17 +1,23 @@
-import { utils } from 'ethers';
-import { ctx } from '../../processor';
+import { ethers } from "ethers";
+import { Extrinsic } from '@subsquid/substrate-processor';
+import { Fields, ctx } from '../../processor';
 import PoolEventBase from './PoolEventBase';
 import { PoolEvent as PoolEventModel } from '../../model';
 import { Pool, PoolType } from '../../model';
-import { RawEventData, ExtrinsicRaw } from '../../interfaces/interfaces';
 import { hexToNativeAddress } from '../../util/util';
+
+export interface RawEventData {
+  address: string,
+  topics:string[],
+  data: string,
+}
 
 export interface PoolEventData {
   poolId: string;
   blockHeight: number;
   eventId: string;
   timestamp: Date;
-  extrinsic?: ExtrinsicRaw;
+  extrinsic: Extrinsic<Fields>;
 }
 
 export interface PairEvent extends PoolEventData {
@@ -19,7 +25,12 @@ export interface PairEvent extends PoolEventData {
   topic0: string;
 }
 
-class PoolEvent extends PoolEventBase<utils.LogDescription> {
+interface DataRawAddress {
+  __kind: 'Id'
+  value: string
+}
+
+class PoolEvent extends PoolEventBase<ethers.LogDescription> {
   // Needed
   poolId: string;
   blockHeight: number;
@@ -46,15 +57,14 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     this.poolId = pairData.poolId;
     this.blockHeight = pairData.blockHeight;
     this.timestamp = pairData.timestamp;
-    this.indexInBlock = pairData.extrinsic?.indexInBlock || 0;
-    if (pairData.extrinsic?.signature?.address?.value) {
-      this.signerAddress = hexToNativeAddress(pairData.extrinsic.signature.address.value);
-    }
+    this.indexInBlock = pairData.extrinsic.index || 0;
+    const addressHex = (pairData.extrinsic.signature!.address as DataRawAddress).value;
+    this.signerAddress = hexToNativeAddress(addressHex);
   }
 
   // Available for child classes before saving
   // eslint-disable-next-line
-  async process(event: utils.LogDescription): Promise<void> { }
+  async process(event: ethers.LogDescription): Promise<void> { }
 
   // Saving pool event to database
   async save(): Promise<void> {
@@ -85,7 +95,7 @@ class PoolEvent extends PoolEventBase<utils.LogDescription> {
     await ctx.store.save(poolEvent);
   }
 
-  async combine(event: utils.LogDescription): Promise<void> {
+  async combine(event: ethers.LogDescription): Promise<void> {
     await this.process(event);
     await this.save();
   }
