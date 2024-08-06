@@ -8,6 +8,7 @@ import { PoolType } from "../../model";
 import { REEF_CONTRACT_ADDRESS } from "../../util/util";
 import { calculateTokenPrices } from "../../util/tokenPrices";
 import { calculateTVL } from "../../util/poolTvl";
+import { getReefTokenPrice } from "../../util/reefPrice";
 
 @ObjectType()
 export class Ping {
@@ -509,9 +510,10 @@ export class PoolResolver {
       ORDER BY pool_id ASC, pe.id DESC
     `;
     let result = await manager.query(query);
+    const reefPrice = await getReefTokenPrice();
 
     let tokenPrices = {
-      [REEF_CONTRACT_ADDRESS]:0.001
+      [REEF_CONTRACT_ADDRESS]:reefPrice
     };
 
     calculateTokenPrices(result,tokenPrices)
