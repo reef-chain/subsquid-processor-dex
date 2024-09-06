@@ -1,6 +1,11 @@
 import "reflect-metadata";
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql';
 import type { EntityManager } from 'typeorm'
+import { getReefTokenPrice } from "../../util/reefPrice";
+import { REEF_CONTRACT_ADDRESS } from "../../util/util";
+import { calculateTokenPrices } from "../../util/tokenPrices";
+import { calculateTVL } from "../../util/poolTvl";
+import { BigInteger } from "@subsquid/graphql-server";
 
 const DEFAULT_VERIFIED_POOLS_WITH_USER_LP_QUERY = `
   SELECT {SELECT}
@@ -149,6 +154,9 @@ export class VerifiedPoolsWithUserLP {
     @Field(() => String, { nullable: true })
     userLockedAmount2!: string | null;
 
+    @Field(() => BigInteger, { nullable: false })
+    tvl!: bigint;
+
     constructor(props: Partial<VerifiedPoolsWithUserLP>) {
       Object.assign(this, props);
     }
@@ -242,6 +250,15 @@ export class PoolListsResolver {
             query,
             search.trim() != "" ? [signerAddress, limit, offset, `${search}%`] : [signerAddress, limit, offset]
         );
+
+        const reefPrice = await getReefTokenPrice();
+
+            let tokenPrices = {
+              [REEF_CONTRACT_ADDRESS]:reefPrice
+            };
+
+            calculateTokenPrices(queryResult,tokenPrices)
+            
         const result = queryResult.map((row: any) => {
           return new VerifiedPoolsWithUserLP({
               id: row.id,
@@ -263,7 +280,20 @@ export class PoolListsResolver {
               prevDayVolume2: row.prev_day_volume2,
               userLockedAmount1: row.user_locked_amount1,
               userLockedAmount2: row.user_locked_amount2,
+              tvl:(calculateTVL({
+                reserved1:row.reserved1,
+                reserved2:row.reserved2,
+                decimals1:row.decimals1,
+                decimals2:row.decimals2,
+                token1:row.token1,
+                token2:row.token2,
+              },tokenPrices) ??0) as any
           });
+        });
+        result.sort((a: VerifiedPoolsWithUserLP, b: VerifiedPoolsWithUserLP) => {
+          const tvlA = parseFloat(a.tvl.toString().replace(/,/g, ''));
+          const tvlB = parseFloat(b.tvl.toString().replace(/,/g, ''));
+          return tvlB - tvlA;
         });
         return result;
     }
