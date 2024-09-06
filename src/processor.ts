@@ -18,29 +18,6 @@ import { Pool, PoolType } from "./model";
 import { PoolEvent as PoolEventModel } from './model';
 import { toChecksumAddress } from "./util/util";
 
-/* anukul undo later */
-
-
-process.env.DB_NAME = 'pools';
-process.env.DB_USER = 'anukul';
-process.env.DB_PASS = 'anukul';
-process.env.DB_PORT = '5432';
-process.env.PROCESSOR_PROMETHEUS_PORT = '3001';
-process.env.GQL_PORT = '4350';
-process.env.SQD_DEBUG = 'sqd:processor:mapping';
-process.env.VERIFY_POOLS = 'false';
-process.env.USE_ONLY_RPC = 'false';
-process.env.VERIFICATION_BATCH_INTERVAL = '10000';
-process.env.ADMIN_KEY = '';
-process.env.START_BLOCK = '25961';
-process.env.NODE_RPC_WS = 'wss://rpc-testnet.reefscan.com/ws';
-process.env.ARCHIVE_LOOKUP_NAME = 'reef-testnet';
-process.env.FACTORY_ADDRESS = '0x9b9a32c56c8F5C131000Acb420734882Cc601d39';
-process.env.VERIFICATION_API_URL = 'https://api-testnet.reefscan.com';
-process.env.EXPLORER_INDEXER = 'https://squid.subsquid.io/reef-explorer-testnet/graphql';
-
-// 
-
 const RPC_URL = process.env.NODE_RPC_WS;
 const AQUARIUM_ARCHIVE_NAME = process.env.ARCHIVE_LOOKUP_NAME as KnownArchives;
 const FACTORY_ADDRESS = process.env.FACTORY_ADDRESS as string;
