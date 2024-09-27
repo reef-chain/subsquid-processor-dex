@@ -5,6 +5,10 @@ import type { EntityManager } from 'typeorm'
 import { PoolListsResolver } from "./poolLists";
 import { TokensResolver } from "./tokens";
 import { PoolType } from "../../model";
+import { REEF_CONTRACT_ADDRESS } from "../../util/util";
+import { calculateTokenPrices } from "../../util/tokenPrices";
+import { calculateTVL } from "../../util/poolTvl";
+import { getReefTokenPrice } from "../../util/reefPrice";
 
 @ObjectType()
 export class Ping {
@@ -197,6 +201,10 @@ export class PoolEventObject {
 
   @Field(() => String, { nullable: false })
   iconUrl2!: string;
+
+  @Field(() => BigInteger, { nullable: false })
+  tvl!: bigint;
+
 
   constructor(props: Partial<PoolEventObject>) {
     Object.assign(this, props);
@@ -502,13 +510,36 @@ export class PoolResolver {
       ORDER BY pool_id ASC, pe.id DESC
     `;
     let result = await manager.query(query);
+    const reefPrice = await getReefTokenPrice();
+
+    let tokenPrices = {
+      [REEF_CONTRACT_ADDRESS]:reefPrice
+    };
+
+    calculateTokenPrices(result,tokenPrices)
+
     result = result.map((row: any) => {
       return new PoolEventObject({
         ...row,
         iconUrl1: row.icon_url1,
         iconUrl2: row.icon_url2,
+        tvl:calculateTVL({
+          reserved1:row.reserved1,
+          reserved2:row.reserved2,
+          decimals1:row.decimals1,
+          decimals2:row.decimals2,
+          token1:row.token1,
+          token2:row.token2,
+        },tokenPrices) ??0
       });
     });
+
+    result.sort((a: PoolEventObject, b: PoolEventObject) => {
+      const tvlA = parseFloat(a.tvl.toString().replace(/,/g, ''));
+      const tvlB = parseFloat(b.tvl.toString().replace(/,/g, ''));
+      return tvlB - tvlA;
+    });
+
     return result;
   }
 
