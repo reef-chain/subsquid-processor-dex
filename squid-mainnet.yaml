@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap
-version: 5
+version: 6
 description: |-
   Reef Swap data
 
@@ -20,7 +20,7 @@ deploy:
       FACTORY_ADDRESS:
         "0x380a9033500154872813F6E1120a81ed6c0760a8"
       VERIFY_POOLS:
-        false
+        true
       USE_ONLY_RPC:
         false
       VERIFICATION_API_URL:
@@ -29,10 +29,12 @@ deploy:
         10000
       START_BLOCK:
         1
-      EXPLORER_INDEXER: 
+      EXPLORER_INDEXER:
         https://squid.subsquid.io/reef-explorer/graphql
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - ADMIN_KEY
+scale:
+  dedicated: true
