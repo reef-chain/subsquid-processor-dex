@@ -27,7 +27,8 @@
     "graphql-type-json": "^0.3.2",
     "pg": "^8.7.3",
     "type-graphql": "^1.2.0-rc.1",
-    "typeorm": "^0.3.6"
+    "typeorm": "^0.3.6",
+    "@types/lodash": "^4.17.5"
   },
   "devDependencies": {
     "@subsquid/evm-typegen": "^3.2.3",
