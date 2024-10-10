@@ -1,6 +1,6 @@
 manifestVersion: subsquid.io/v0.1
 name: reef-swap-testnet
-version: 5
+version: 6
 description: |-
   Reef Swap testnet data
 
@@ -29,13 +29,13 @@ deploy:
         10000
       START_BLOCK:
         1
-      EXPLORER_INDEXER: 
+      EXPLORER_INDEXER:
         https://squid.subsquid.io/reef-explorer-testnet/graphql
     cmd: [ "node", "lib/processor" ]
   api:
-    cmd: [ "npx", "squid-graphql-server", "--subscriptions", "--max-root-fields", "15", "--max-response-size", "1000"]
+    cmd: [ "npx", "squid-graphql-server", "--max-root-fields", "15", "--max-response-size", "1000"]
   secrets:
     - ADMIN_KEY
 
 scale:
-  dedicated: true
+  dedicated: false
