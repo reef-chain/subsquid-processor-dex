@@ -18,7 +18,7 @@ deploy:
       ARCHIVE_LOOKUP_NAME:
         reef-testnet
       FACTORY_ADDRESS:
-        "0x9b9a32c56c8F5C131000Acb420734882Cc601d39"
+        "0xe8f4D9308DC06D1D570117B1656C26F515aF22a7"
       VERIFY_POOLS:
         true
       USE_ONLY_RPC:
@@ -30,7 +30,7 @@ deploy:
       START_BLOCK:
         1
       EXPLORER_INDEXER:
-        https://squid.subsquid.io/reef-explorer-testnet/graphql
+        https://reef.squids.live/reef-explorer-testnet:prod/api/graphql
     cmd: [ "node", "lib/processor" ]
   api:
     cmd: [ "npx", "squid-graphql-server", "--max-root-fields", "15", "--max-response-size", "1000"]
